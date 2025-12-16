@@ -1,0 +1,37 @@
+# SGUI库的配置文件
+
+# 设置库的包含目录
+set(SGUI_INCLUDE_DIRS "@PROJECT_SOURCE_DIR@/include")
+
+# 设置库目录
+set(SGUI_LIBRARY_DIRS "@CMAKE_BINARY_DIR@/lib")
+
+# 静态库文件
+set(SGUI_STATIC_LIBRARIES "@CMAKE_BINARY_DIR@/lib/@SGUI_LIB_NAME@_static.a")
+
+# 动态库文件
+set(SGUI_SHARED_LIBRARIES "@CMAKE_BINARY_DIR@/lib/@SGUI_LIB_NAME@_shared.@CMAKE_SHARED_LIBRARY_SUFFIX@")
+
+# 版本信息
+set(SGUI_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
+set(SGUI_VERSION_MINOR @PROJECT_VERSION_MINOR@)
+set(SGUI_VERSION_PATCH @PROJECT_VERSION_PATCH@)
+set(SGUI_VERSION "@PROJECT_VERSION@")
+
+# 导出目标（如果使用现代CMake）
+if(NOT TARGET sgui::sgui)
+    add_library(sgui::sgui STATIC IMPORTED)
+    set_target_properties(sgui::sgui PROPERTIES
+        IMPORTED_LOCATION "${SGUI_STATIC_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SGUI_INCLUDE_DIRS}"
+    )
+endif()
+
+# 导出动态库目标
+if(NOT TARGET sgui::sgui_shared)
+    add_library(sgui::sgui_shared SHARED IMPORTED)
+    set_target_properties(sgui::sgui_shared PROPERTIES
+        IMPORTED_LOCATION "${SGUI_SHARED_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SGUI_INCLUDE_DIRS}"
+    )
+endif()
