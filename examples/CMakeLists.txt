@@ -1,4 +1,6 @@
 # 示例程序的CMakeLists.txt
+cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0072 NEW)
 
 # GLFW示例
 add_executable(glfw_hello
@@ -19,6 +21,20 @@ add_executable(test_input
 add_executable(repo_test
     repo_test/main.cpp
 )
+
+# libcss和libdom demo
+add_executable(dom_hello
+    dom_hello/main.cpp
+)
+
+# Yoga layout demo
+add_subdirectory(yoga_demo)
+
+# Container class demo
+add_subdirectory(container_demo)
+
+# ContainerEx class demo
+add_subdirectory(containerex_demo)
 
 # 链接GLFW、OpenGL库和sgui库
 find_package(OpenGL REQUIRED)
@@ -62,5 +78,10 @@ target_include_directories(repo_test PRIVATE
 )
 
 target_include_directories(test_input PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+# dom_hello项目 - 只需要标准C++库
+target_include_directories(dom_hello PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )

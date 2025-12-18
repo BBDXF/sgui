@@ -2,6 +2,7 @@
 
 # 设置CMake策略
 cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0072 NEW)
 
 # 设置库名称
 set(SGUI_LIB_NAME sgui)
@@ -45,27 +46,31 @@ target_include_directories(${SGUI_LIB_NAME}_shared
 
 # 链接依赖库
 target_link_libraries(${SGUI_LIB_NAME}_static
+    PUBLIC
+    yoga::yoga
     PRIVATE
     glfw
     ${OPENGL_LIBRARIES}
 )
 
 target_link_libraries(${SGUI_LIB_NAME}_shared
+    PUBLIC
+    yoga::yoga
     PRIVATE
     glfw
     ${OPENGL_LIBRARIES}
 )
 
 # 设置输出目录
-set_target_properties(${SGUI_LIB_NAME}_static PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-)
+# set_target_properties(${SGUI_LIB_NAME}_static PROPERTIES
+#     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+#     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+# )
 
-set_target_properties(${SGUI_LIB_NAME}_shared PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
+# set_target_properties(${SGUI_LIB_NAME}_shared PROPERTIES
+#     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+# )
 
 # 设置版本和SO版本信息（仅适用于动态库）
 # 使用项目版本来保持一致性
@@ -88,6 +93,13 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
     PATTERN "*.hpp"
 )
 
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/yoga
+    DESTINATION include/yoga
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+)
+
 # 导出配置文件（可选，用于find_package）
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/SGUIConfig.cmake.in
               ${CMAKE_BINARY_DIR}/SGUIConfig.cmake @ONLY)
@@ -95,23 +107,23 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/SGUIConfig.cmake.in
 install(FILES ${CMAKE_BINARY_DIR}/SGUIConfig.cmake
     DESTINATION lib/cmake/sgui)
 
-# 在构建过程中复制头文件到构建目录，方便开发和测试
-# 创建include目录
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+# # 在构建过程中复制头文件到构建目录，方便开发和测试
+# # 创建include目录
+# file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 
-# 复制所有头文件到构建目录
-file(GLOB SGUI_HEADERS "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/include/*.hpp")
-foreach(header_file ${SGUI_HEADERS})
-    get_filename_component(header_name ${header_file} NAME)
-    configure_file(${header_file} ${CMAKE_BINARY_DIR}/include/${header_name} COPYONLY)
-endforeach()
+# # 复制所有头文件到构建目录
+# file(GLOB SGUI_HEADERS "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/include/*.hpp")
+# foreach(header_file ${SGUI_HEADERS})
+#     get_filename_component(header_name ${header_file} NAME)
+#     configure_file(${header_file} ${CMAKE_BINARY_DIR}/include/${header_name} COPYONLY)
+# endforeach()
 
-# 添加一个自定义目标来确保头文件被复制
-add_custom_target(copy_headers ALL
-    COMMENT "Copying SGUI headers to build directory"
-    DEPENDS ${SGUI_HEADERS}
-)
+# # 添加一个自定义目标来确保头文件被复制
+# add_custom_target(copy_headers ALL
+#     COMMENT "Copying SGUI headers to build directory"
+#     DEPENDS ${SGUI_HEADERS}
+# )
 
-# 确保头文件复制在库构建之前完成
-add_dependencies(${SGUI_LIB_NAME}_static copy_headers)
-add_dependencies(${SGUI_LIB_NAME}_shared copy_headers)
+# # 确保头文件复制在库构建之前完成
+# add_dependencies(${SGUI_LIB_NAME}_static copy_headers)
+# add_dependencies(${SGUI_LIB_NAME}_shared copy_headers)

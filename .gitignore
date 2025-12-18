@@ -3,3 +3,7 @@ log
 
 .cache
 .vscode
+
+.clangd
+.clang-format
+.clang-tidy
