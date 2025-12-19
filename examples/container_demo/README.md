@@ -45,7 +45,7 @@ struct EdgeInsets {
 
 统一管理边距、内边距和位置。
 
-### 3. Container 基类
+### 3. SContainer 基类
 提供完整的布局功能：
 
 #### 布局属性
@@ -58,12 +58,12 @@ struct EdgeInsets {
 
 #### 子节点管理
 ```cpp
-void addChild(const ContainerPtr& child);
-void insertChild(const ContainerPtr& child, size_t index);
-void removeChild(const ContainerPtr& child);
+void addChild(const SContainerPtr& child);
+void insertChild(const SContainerPtr& child, size_t index);
+void removeChild(const SContainerPtr& child);
 void removeAllChildren();
 size_t getChildCount() const;
-ContainerPtr getChildAt(size_t index) const;
+SContainerPtr getChildAt(size_t index) const;
 ```
 
 #### 布局计算
@@ -137,11 +137,11 @@ main->addChild(content);
 
 ### 自定义组件
 ```cpp
-class Button : public sgui::Container {
+class Button : public sgui::SContainer {
 public:
     Button(const std::string& text) {
         setPadding(sgui::EdgeInsets::Symmetric(16, 8));
-        setAlignItems(sgui::Container::Align::Center);
+        setAlignItems(sgui::SContainer::Align::Center);
         // 自定义样式和行为
     }
     
@@ -157,9 +157,9 @@ auto container = sgui::createContainer("Responsive");
 container->setWidth(sgui::LayoutValue::Percent(100));
 
 if (isMobile) {
-    container->setFlexDirection(sgui::Container::FlexDirection::Column);
+    container->setFlexDirection(sgui::SContainer::FlexDirection::Column);
 } else {
-    container->setFlexDirection(sgui::Container::FlexDirection::Row);
+    container->setFlexDirection(sgui::SContainer::FlexDirection::Row);
 }
 ```
 

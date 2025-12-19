@@ -8,8 +8,12 @@ cmake_policy(SET CMP0072 NEW)
 set(SGUI_LIB_NAME sgui)
 
 # 找到所需的依赖库
-find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
+
+# 查找X11库（Linux平台需要）
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+endif()
 
 # 收集所有源文件
 file(GLOB SGUI_SOURCES
@@ -18,6 +22,7 @@ file(GLOB SGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/internal/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/layout/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/render/*.cpp"
 )
 
 # 创建静态库
@@ -50,7 +55,7 @@ target_link_libraries(${SGUI_LIB_NAME}_static
     yoga::yoga
     PRIVATE
     glfw
-    ${OPENGL_LIBRARIES}
+    ${CAIRO_LIBRARIES}
 )
 
 target_link_libraries(${SGUI_LIB_NAME}_shared
@@ -58,7 +63,37 @@ target_link_libraries(${SGUI_LIB_NAME}_shared
     yoga::yoga
     PRIVATE
     glfw
-    ${OPENGL_LIBRARIES}
+    ${CAIRO_LIBRARIES}
+)
+
+# 在Linux平台上链接X11库
+if(UNIX AND NOT APPLE AND X11_FOUND)
+    target_link_libraries(${SGUI_LIB_NAME}_static PRIVATE ${X11_LIBRARIES})
+    target_link_libraries(${SGUI_LIB_NAME}_shared PRIVATE ${X11_LIBRARIES})
+    target_include_directories(${SGUI_LIB_NAME}_static PRIVATE ${X11_INCLUDE_DIR})
+    target_include_directories(${SGUI_LIB_NAME}_shared PRIVATE ${X11_INCLUDE_DIR})
+endif()
+
+# 添加Cairo包含目录
+target_include_directories(${SGUI_LIB_NAME}_static
+    PRIVATE
+    ${CAIRO_INCLUDE_DIRS}
+)
+
+target_include_directories(${SGUI_LIB_NAME}_shared
+    PRIVATE
+    ${CAIRO_INCLUDE_DIRS}
+)
+
+# 添加Cairo编译选项
+target_compile_options(${SGUI_LIB_NAME}_static
+    PRIVATE
+    ${CAIRO_CFLAGS_OTHER}
+)
+
+target_compile_options(${SGUI_LIB_NAME}_shared
+    PRIVATE
+    ${CAIRO_CFLAGS_OTHER}
 )
 
 # 设置输出目录

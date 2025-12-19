@@ -2,12 +2,12 @@
 #include <iostream>
 
 // 简单的窗口管理类
-class WindowManager {
+class SWindowManager {
 public:
-    WindowManager(int width, int height, const char* title)
+    SWindowManager(int width, int height, const char* title)
         : width_(width), height_(height), title_(title), window_(nullptr) {}
 
-    ~WindowManager() {
+    ~SWindowManager() {
         if (window_) {
             glfwDestroyWindow(window_);
         }
@@ -66,7 +66,7 @@ private:
 
     // 窗口大小回调
     static void WindowSizeCallback(GLFWwindow* window, int width, int height) {
-        auto manager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+        auto manager = static_cast<SWindowManager*>(glfwGetWindowUserPointer(window));
         if (manager) {
             manager->width_ = width;
             manager->height_ = height;
@@ -82,7 +82,7 @@ private:
 
 int main() {
     // 创建窗口管理器
-    WindowManager manager(800, 600, "SGUI - GLFW Window Demo");
+    SWindowManager manager(800, 600, "SGUI - GLFW Window Demo");
 
     // 初始化
     if (!manager.Initialize()) {

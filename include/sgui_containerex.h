@@ -12,168 +12,18 @@
 namespace sgui {
 
 // 前向声明
-class ContainerEx;
+class SContainerEx;
 
 // 智能指针类型定义
-using ContainerExPtr = std::shared_ptr<ContainerEx>;
-
-/**
- * 颜色结构体
- */
-struct Color {
-    float r = 0.0f;  // 红色分量 [0-1]
-    float g = 0.0f;  // 绿色分量 [0-1]
-    float b = 0.0f;  // 蓝色分量 [0-1]
-    float a = 1.0f;  // 透明度 [0-1]
-    
-    Color() = default;
-    Color(float red, float green, float blue, float alpha = 1.0f)
-        : r(red), g(green), b(blue), a(alpha) {}
-    
-    // 从十六进制颜色创建
-    static Color fromHex(uint32_t hex) {
-        return Color(
-            ((hex >> 24) & 0xFF) / 255.0f,
-            ((hex >> 16) & 0xFF) / 255.0f,
-            ((hex >> 8) & 0xFF) / 255.0f,
-            (hex & 0xFF) / 255.0f
-        );
-    }
-    
-    // 从RGB值创建
-    static Color fromRGB(int r, int g, int b, int a = 255) {
-        return Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
-    }
-    
-    uint32_t toHex() const {
-        return (uint32_t(r * 255) << 24) |
-               (uint32_t(g * 255) << 16) |
-               (uint32_t(b * 255) << 8) |
-               uint32_t(a * 255);
-    }
-};
-
-/**
- * 渐变类型枚举
- */
-enum class GradientType {
-    Linear,    // 线性渐变
-    Radial     // 径向渐变
-};
-
-/**
- * 渐变停止点
- */
-struct GradientStop {
-    Color color;
-    float position;  // 位置 [0-1]
-    
-    GradientStop() = default;
-    GradientStop(const Color& c, float pos) : color(c), position(pos) {}
-};
-
-/**
- * 渐变背景
- */
-struct BackgroundGradient {
-    GradientType type = GradientType::Linear;
-    std::vector<GradientStop> stops;
-    float angle = 0.0f;  // 线性渐变角度（度）
-    
-    BackgroundGradient() = default;
-    BackgroundGradient(GradientType t) : type(t) {}
-};
-
-/**
- * 边框样式枚举
- */
-enum class BorderStyle {
-    Solid,      // 实线
-    Dashed,     // 虚线
-    Dotted,     // 点线
-    Double,     // 双线
-    Groove,     // 凹槽
-    Ridge,      // 脊状
-    Inset,      // 内嵌
-    Outset      // 外嵌
-};
-
-/**
- * 阴影结构体
- */
-struct BoxShadow {
-    Color color = Color(0, 0, 0, 0.5f);  // 阴影颜色
-    float offsetX = 0.0f;                // X轴偏移
-    float offsetY = 0.0f;                // Y轴偏移
-    float blurRadius = 0.0f;             // 模糊半径
-    float spreadRadius = 0.0f;           // 扩散半径
-    bool inset = false;                  // 是否为内阴影
-    
-    BoxShadow() = default;
-    BoxShadow(const Color& c, float x, float y, float blur = 0.0f, float spread = 0.0f, bool in = false)
-        : color(c), offsetX(x), offsetY(y), blurRadius(blur), spreadRadius(spread), inset(in) {}
-};
-
-/**
- * 字体粗细枚举
- */
-enum class FontWeight {
-    Thin = 100,
-    ExtraLight = 200,
-    Light = 300,
-    Normal = 400,
-    Medium = 500,
-    SemiBold = 600,
-    Bold = 700,
-    ExtraBold = 800,
-    Black = 900
-};
-
-/**
- * 字体样式枚举
- */
-enum class FontStyle {
-    Normal,
-    Italic,
-    Oblique
-};
-
-/**
- * 文本对齐枚举
- */
-enum class TextAlign {
-    Left,
-    Center,
-    Right,
-    Justify
-};
-
-/**
- * 文本装饰枚举
- */
-enum class TextDecoration {
-    None,
-    Underline,
-    Overline,
-    LineThrough
-};
-
-/**
- * 文本溢出处理枚举
- */
-enum class TextOverflow {
-    Clip,        // 直接裁剪
-    Ellipsis,    // 显示省略号
-    Fade         // 淡出效果
-};
+using ContainerExPtr = std::shared_ptr<SContainerEx>;
 
 /**
  * ContainerEx类 - 扩展的容器，支持样式属性
  */
-class ContainerEx : public Container {
+class SContainerEx : public SContainer {
 public:
-    ContainerEx();
-    ~ContainerEx() override = default;
+    SContainerEx();
+    ~SContainerEx() override = default;
     
     // ====================================================================
     // 背景相关属性
@@ -291,7 +141,7 @@ public:
     // ====================================================================
     
     /** 重写绘制函数 */
-    void draw() override;
+    void render(cairo_t* cr) override;
     
     /** 重写测量函数 */
     void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) override;
@@ -343,7 +193,7 @@ private:
     // ====================================================================
     Color m_textColor;
     float m_fontSize = 14.0f;
-    std::string m_fontFamily = "Arial";
+    std::string m_fontFamily = SGUI_DEFAULT_FONT_FAMILY;
     FontWeight m_fontWeight = FontWeight::Normal;
     FontStyle m_fontStyle = FontStyle::Normal;
     TextAlign m_textAlign = TextAlign::Left;
@@ -359,29 +209,24 @@ private:
     // 私有辅助函数
     // ====================================================================
     
-    /** 绘制背景 */
-    void drawBackground();
-    
-    /** 绘制背景色 */
-    void drawBackgroundColor();
-    
-    /** 绘制背景图片 */
-    void drawBackgroundImage();
-    
-    /** 绘制渐变背景 */
-    void drawBackgroundGradient();
-    
-    /** 绘制边框 */
-    void drawBorder();
-    
-    /** 绘制文本 */
-    void drawText();
-    
     /** 测量文本尺寸 */
     void measureText(float& width, float& height);
     
     /** 标记样式已更改 */
     void markStylesDirty();
+    
+    // ====================================================================
+    // Cairo绘制相关私有辅助函数
+    // ====================================================================
+    
+    /** 使用Cairo绘制背景 */
+    void drawBackgroundCairo(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 使用Cairo绘制边框 */
+    void drawBorderCairo(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 使用Cairo绘制文本 */
+    void drawTextCairo(cairo_t* cr, float x, float y, float width, float height);
     
     /** 样式更改标记 */
     bool m_stylesDirty = true;

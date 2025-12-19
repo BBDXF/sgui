@@ -1,5 +1,5 @@
 /**
- * Container.h - GUI容器的基类
+ * SContainer.h - GUI容器的基类
  * 
  * 基于Yoga Flexbox布局引擎的GUI容器基类，提供完整的布局功能
  * 所有GUI组件都应该继承自这个基类
@@ -16,120 +16,31 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include "sgui_common.h"
+#include <cairo/cairo.h>
 
 namespace sgui {
 
 // 前向声明
-class Container;
+class SContainer;
 
 // 智能指针类型定义
-using ContainerPtr = std::shared_ptr<Container>;
-using ContainerWeakPtr = std::weak_ptr<Container>;
-
-/**
- * 布局值类型，支持点、百分比、自动等不同单位
- */
-struct LayoutValue {
-    float value = 0.0f;
-    bool isPercent = false;
-    bool isAuto = false;
-    
-    LayoutValue() = default;
-    LayoutValue(float v) : value(v) {}
-    LayoutValue(float v, bool percent) : value(v), isPercent(percent) {}
-    
-    static LayoutValue Auto() { LayoutValue v; v.isAuto = true; return v; }
-    static LayoutValue Percent(float v) { return LayoutValue(v, true); }
-    static LayoutValue Point(float v) { return LayoutValue(v, false); }
-};
-
-/**
- * 边距/内边距设置
- */
-struct EdgeInsets {
-    LayoutValue left, top, right, bottom;
-    
-    EdgeInsets() = default;
-    EdgeInsets(float all) : left(all), top(all), right(all), bottom(all) {}
-    EdgeInsets(float horizontal, float vertical) 
-        : left(horizontal), top(vertical), right(horizontal), bottom(vertical) {}
-    EdgeInsets(float l, float t, float r, float b) 
-        : left(l), top(t), right(r), bottom(b) {}
-    
-    static EdgeInsets All(float value) { return EdgeInsets(value); }
-    static EdgeInsets Horizontal(float value) { return EdgeInsets(value, 0); }
-    static EdgeInsets Vertical(float value) { return EdgeInsets(0, value); }
-    static EdgeInsets Symmetric(float horizontal, float vertical) { return EdgeInsets(horizontal, vertical); }
-    static EdgeInsets Only(float left, float top, float right, float bottom) { return EdgeInsets(left, top, right, bottom); }
-};
+using SContainerPtr = std::shared_ptr<SContainer>;
+using SContainerWeakPtr = std::weak_ptr<SContainer>;
 
 /**
  * Container基类 - 所有GUI组件的基础
  */
-class Container : public std::enable_shared_from_this<Container> {
+class SContainer : public std::enable_shared_from_this<SContainer> {
 public:
-    // Flex方向枚举
-    enum class FlexDirection {
-        Row = YGFlexDirectionRow,
-        RowReverse = YGFlexDirectionRowReverse,
-        Column = YGFlexDirectionColumn,
-        ColumnReverse = YGFlexDirectionColumnReverse
-    };
-    
-    // 对齐方式枚举
-    enum class Align {
-        Auto = YGAlignAuto,
-        FlexStart = YGAlignFlexStart,
-        Center = YGAlignCenter,
-        FlexEnd = YGAlignFlexEnd,
-        Stretch = YGAlignStretch,
-        Baseline = YGAlignBaseline,
-        SpaceBetween = YGAlignSpaceBetween,
-        SpaceAround = YGAlignSpaceAround,
-        SpaceEvenly = YGAlignSpaceEvenly
-    };
-    
-    // 位置类型枚举
-    enum class PositionType {
-        Static = YGPositionTypeStatic,
-        Relative = YGPositionTypeRelative,
-        Absolute = YGPositionTypeAbsolute
-    };
-    
-    // 换行方式枚举
-    enum class FlexWrap {
-        NoWrap = YGWrapNoWrap,
-        Wrap = YGWrapWrap,
-        WrapReverse = YGWrapWrapReverse
-    };
-    
-    // 溢出处理枚举
-    enum class Overflow {
-        Visible = YGOverflowVisible,
-        Hidden = YGOverflowHidden,
-        Scroll = YGOverflowScroll
-    };
-    
-    // 显示类型枚举
-    enum class Display {
-        Flex = YGDisplayFlex,
-        None = YGDisplayNone
-    };
-    
-    // 方向枚举
-    enum class Direction {
-        Inherit = YGDirectionInherit,
-        LTR = YGDirectionLTR,
-        RTL = YGDirectionRTL
-    };
 
 public:
-    Container();
-    virtual ~Container();
+    SContainer();
+    virtual ~SContainer();
     
     // 禁用拷贝构造和赋值
-    Container(const Container&) = delete;
-    Container& operator=(const Container&) = delete;
+    SContainer(const SContainer&) = delete;
+    SContainer& operator=(const SContainer&) = delete;
     
     // ====================================================================
     // 子节点管理
@@ -138,17 +49,17 @@ public:
     /**
      * 添加子节点
      */
-    void addChild(const ContainerPtr& child);
+    void addChild(const SContainerPtr& child);
     
     /**
      * 在指定位置插入子节点
      */
-    void insertChild(const ContainerPtr& child, size_t index);
+    void insertChild(const SContainerPtr& child, size_t index);
     
     /**
      * 移除子节点
      */
-    void removeChild(const ContainerPtr& child);
+    void removeChild(const SContainerPtr& child);
     
     /**
      * 移除所有子节点
@@ -163,12 +74,12 @@ public:
     /**
      * 获取指定索引的子节点
      */
-    ContainerPtr getChildAt(size_t index) const;
+    SContainerPtr getChildAt(size_t index) const;
     
     /**
      * 获取父节点
      */
-    ContainerPtr getParent() const { return m_parent.lock(); }
+    SContainerPtr getParent() const { return m_parent.lock(); }
     
     // ====================================================================
     // 布局属性设置
@@ -300,25 +211,46 @@ public:
      * 标记需要重新计算布局
      */
     void markDirty();
+
+    /**
+     * 清除dirty标记
+     */
+    void clearDirty();
     
     // ====================================================================
     // 虚函数接口
     // ====================================================================
     
     /**
-     * 绘制函数 - 子类需要重写
+     * Cairo渲染函数 - 子类可以重写以实现自定义绘制
+     * @param cr Cairo绘制上下文
      */
-    virtual void draw() {}
+    virtual void render(cairo_t* cr) {
+        // 避免未使用参数警告
+        (void)cr;
+    }
     
     /**
      * 自定义测量函数 - 用于文本等需要测量的内容
      */
-    virtual void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) {}
+    virtual void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) {
+        // 避免未使用参数警告
+        (void)width;
+        (void)height;
+        (void)measuredWidth;
+        (void)measuredHeight;
+    }
     
     /**
      * 布局变化回调
      */
     virtual void onLayoutChanged() {}
+    
+    /**
+     * 渲染容器及其所有子节点
+     * @param cr Cairo绘制上下文
+     */
+    void renderTree(cairo_t* cr);
     
     // ====================================================================
     // 工具函数
@@ -353,17 +285,22 @@ protected:
     /**
      * 子节点列表
      */
-    std::vector<ContainerPtr> m_children;
+    std::vector<SContainerPtr> m_children;
     
     /**
      * 父节点弱引用
      */
-    ContainerWeakPtr m_parent;
+    SContainerWeakPtr m_parent;
     
     /**
      * 用户数据指针
      */
     void* m_userData = nullptr;
+
+    /**
+     * Dirty 标记
+     */
+    bool m_dirty = true;
 
 private:
     /**

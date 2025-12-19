@@ -7,3 +7,4 @@ log
 .clangd
 .clang-format
 .clang-tidy
+ref/

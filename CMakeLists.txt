@@ -14,6 +14,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# 添加Cairo库依赖
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CAIRO REQUIRED cairo>=1.14.0)
+
 # 添加yoga作为外部依赖
 option(BUILD_YOGA "Build yoga library from source" ON)
 if(BUILD_YOGA)

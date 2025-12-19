@@ -1,5 +1,5 @@
 /**
- * Container Demo - 演示基于Yoga的Container基类使用
+ * SContainer Demo - 演示基于Yoga的Container基类使用
  * 
  * 这个demo展示了如何使用Container类创建GUI布局系统
  */
@@ -45,7 +45,7 @@ struct EdgeInsets {
 };
 
 // 简化的Container类概念演示
-class Container {
+class SContainer {
 public:
     enum class FlexDirection {
         Row, Column
@@ -67,10 +67,10 @@ private:
     Align m_alignItems, m_justifyContent;
     EdgeInsets m_margin, m_padding;
     PositionType m_positionType;
-    std::vector<std::shared_ptr<Container>> m_children;
+    std::vector<std::shared_ptr<SContainer>> m_children;
     
 public:
-    Container(const std::string& name = "Container") 
+    SContainer(const std::string& name = "SContainer") 
         : m_name(name), m_flexDirection(FlexDirection::Column), 
           m_alignItems(Align::Stretch), m_justifyContent(Align::FlexStart),
           m_positionType(PositionType::Static) {}
@@ -95,7 +95,7 @@ public:
     void setPadding(const EdgeInsets& padding) { m_padding = padding; }
     
     // 子节点管理
-    void addChild(const std::shared_ptr<Container>& child) {
+    void addChild(const std::shared_ptr<SContainer>& child) {
         m_children.push_back(child);
     }
     
@@ -154,20 +154,20 @@ private:
 };
 
 // 工厂函数创建常用组件
-std::shared_ptr<Container> createContainer(const std::string& name) {
-    return std::make_shared<Container>(name);
+std::shared_ptr<SContainer> createContainer(const std::string& name) {
+    return std::make_shared<SContainer>(name);
 }
 
-std::shared_ptr<Container> createRow(const std::string& name) {
-    auto container = std::make_shared<Container>(name);
-    container->setFlexDirection(Container::FlexDirection::Row);
-    container->setAlignItems(Container::Align::Center);
+std::shared_ptr<SContainer> createRow(const std::string& name) {
+    auto container = std::make_shared<SContainer>(name);
+    container->setFlexDirection(SContainer::FlexDirection::Row);
+    container->setAlignItems(SContainer::Align::Center);
     return container;
 }
 
-std::shared_ptr<Container> createColumn(const std::string& name) {
-    auto container = std::make_shared<Container>(name);
-    container->setFlexDirection(Container::FlexDirection::Column);
+std::shared_ptr<SContainer> createColumn(const std::string& name) {
+    auto container = std::make_shared<SContainer>(name);
+    container->setFlexDirection(SContainer::FlexDirection::Column);
     return container;
 }
 

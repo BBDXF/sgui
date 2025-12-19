@@ -1,8 +1,9 @@
 /**
- * Container.cpp - GUI容器的基类实现
+ * SContainer.cpp - GUI容器的基类实现
  */
 
 #include "sgui_container.h"
+#include <cairo.h>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -13,7 +14,7 @@ namespace sgui {
 static YGSize measureFunc(YGNodeConstRef node, float width, YGMeasureMode widthMode, 
                          float height, YGMeasureMode heightMode) {
     // 从节点获取Container指针
-    Container* container = static_cast<Container*>(YGNodeGetContext(node));
+    SContainer* container = static_cast<SContainer*>(YGNodeGetContext(node));
     if (!container) {
         return {0, 0};
     }
@@ -26,27 +27,27 @@ static YGSize measureFunc(YGNodeConstRef node, float width, YGMeasureMode widthM
 
 // 静态回调函数用于布局变化
 static void dirtiedFunc(YGNodeConstRef node) {
-    Container* container = static_cast<Container*>(YGNodeGetContext(node));
+    SContainer* container = static_cast<SContainer*>(YGNodeGetContext(node));
     if (container) {
         container->onLayoutChanged();
     }
 }
 
-Container::Container() {
+SContainer::SContainer() {
     // 创建Yoga节点
     m_yogaNode = YGNodeNew();
     
     // 设置上下文指针
     YGNodeSetContext(m_yogaNode, this);
     
-    // 设置测量函数
-    YGNodeSetMeasureFunc(m_yogaNode, measureFunc);
+    // 完全不设置测量函数，让Yoga自动处理布局
+    // YGNodeSetMeasureFunc(m_yogaNode, measureFunc);
     
     // 设置脏标记回调
     YGNodeSetDirtiedFunc(m_yogaNode, dirtiedFunc);
 }
 
-Container::~Container() {
+SContainer::~SContainer() {
     // 移除所有子节点
     removeAllChildren();
     
@@ -61,7 +62,7 @@ Container::~Container() {
 // 子节点管理
 // ====================================================================
 
-void Container::addChild(const ContainerPtr& child) {
+void SContainer::addChild(const SContainerPtr& child) {
     if (!child) return;
     
     // 移除子节点原来的父节点
@@ -83,7 +84,7 @@ void Container::addChild(const ContainerPtr& child) {
     markDirty();
 }
 
-void Container::insertChild(const ContainerPtr& child, size_t index) {
+void SContainer::insertChild(const SContainerPtr& child, size_t index) {
     if (!child || index > m_children.size()) return;
     
     // 移除子节点原来的父节点
@@ -105,7 +106,7 @@ void Container::insertChild(const ContainerPtr& child, size_t index) {
     markDirty();
 }
 
-void Container::removeChild(const ContainerPtr& child) {
+void SContainer::removeChild(const SContainerPtr& child) {
     if (!child) return;
     
     auto it = std::find(m_children.begin(), m_children.end(), child);
@@ -124,7 +125,7 @@ void Container::removeChild(const ContainerPtr& child) {
     }
 }
 
-void Container::removeAllChildren() {
+void SContainer::removeAllChildren() {
     // 移除所有Yoga子节点
     YGNodeRemoveAllChildren(m_yogaNode);
     
@@ -140,11 +141,11 @@ void Container::removeAllChildren() {
     markDirty();
 }
 
-size_t Container::getChildCount() const {
+size_t SContainer::getChildCount() const {
     return m_children.size();
 }
 
-ContainerPtr Container::getChildAt(size_t index) const {
+SContainerPtr SContainer::getChildAt(size_t index) const {
     if (index >= m_children.size()) return nullptr;
     return m_children[index];
 }
@@ -154,7 +155,7 @@ ContainerPtr Container::getChildAt(size_t index) const {
 // ====================================================================
 
 // --- 尺寸设置 ---
-void Container::setWidth(const LayoutValue& width) {
+void SContainer::setWidth(const LayoutValue& width) {
     YGValue ygValue = toYGValue(width);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetWidthPercent(m_yogaNode, ygValue.value);
@@ -165,7 +166,7 @@ void Container::setWidth(const LayoutValue& width) {
     }
 }
 
-void Container::setHeight(const LayoutValue& height) {
+void SContainer::setHeight(const LayoutValue& height) {
     YGValue ygValue = toYGValue(height);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetHeightPercent(m_yogaNode, ygValue.value);
@@ -176,7 +177,7 @@ void Container::setHeight(const LayoutValue& height) {
     }
 }
 
-void Container::setMinWidth(const LayoutValue& minWidth) {
+void SContainer::setMinWidth(const LayoutValue& minWidth) {
     YGValue ygValue = toYGValue(minWidth);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetMinWidthPercent(m_yogaNode, ygValue.value);
@@ -185,7 +186,7 @@ void Container::setMinWidth(const LayoutValue& minWidth) {
     }
 }
 
-void Container::setMinHeight(const LayoutValue& minHeight) {
+void SContainer::setMinHeight(const LayoutValue& minHeight) {
     YGValue ygValue = toYGValue(minHeight);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetMinHeightPercent(m_yogaNode, ygValue.value);
@@ -194,7 +195,7 @@ void Container::setMinHeight(const LayoutValue& minHeight) {
     }
 }
 
-void Container::setMaxWidth(const LayoutValue& maxWidth) {
+void SContainer::setMaxWidth(const LayoutValue& maxWidth) {
     YGValue ygValue = toYGValue(maxWidth);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetMaxWidthPercent(m_yogaNode, ygValue.value);
@@ -203,7 +204,7 @@ void Container::setMaxWidth(const LayoutValue& maxWidth) {
     }
 }
 
-void Container::setMaxHeight(const LayoutValue& maxHeight) {
+void SContainer::setMaxHeight(const LayoutValue& maxHeight) {
     YGValue ygValue = toYGValue(maxHeight);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetMaxHeightPercent(m_yogaNode, ygValue.value);
@@ -212,44 +213,44 @@ void Container::setMaxHeight(const LayoutValue& maxHeight) {
     }
 }
 
-LayoutValue Container::getWidth() const {
+LayoutValue SContainer::getWidth() const {
     return fromYGValue(YGNodeStyleGetWidth(m_yogaNode));
 }
 
-LayoutValue Container::getHeight() const {
+LayoutValue SContainer::getHeight() const {
     return fromYGValue(YGNodeStyleGetHeight(m_yogaNode));
 }
 
-LayoutValue Container::getMinWidth() const {
+LayoutValue SContainer::getMinWidth() const {
     return fromYGValue(YGNodeStyleGetMinWidth(m_yogaNode));
 }
 
-LayoutValue Container::getMinHeight() const {
+LayoutValue SContainer::getMinHeight() const {
     return fromYGValue(YGNodeStyleGetMinHeight(m_yogaNode));
 }
 
-LayoutValue Container::getMaxWidth() const {
+LayoutValue SContainer::getMaxWidth() const {
     return fromYGValue(YGNodeStyleGetMaxWidth(m_yogaNode));
 }
 
-LayoutValue Container::getMaxHeight() const {
+LayoutValue SContainer::getMaxHeight() const {
     return fromYGValue(YGNodeStyleGetMaxHeight(m_yogaNode));
 }
 
 // --- Flex属性 ---
-void Container::setFlex(float flex) {
+void SContainer::setFlex(float flex) {
     YGNodeStyleSetFlex(m_yogaNode, flex);
 }
 
-void Container::setFlexGrow(float flexGrow) {
+void SContainer::setFlexGrow(float flexGrow) {
     YGNodeStyleSetFlexGrow(m_yogaNode, flexGrow);
 }
 
-void Container::setFlexShrink(float flexShrink) {
+void SContainer::setFlexShrink(float flexShrink) {
     YGNodeStyleSetFlexShrink(m_yogaNode, flexShrink);
 }
 
-void Container::setFlexBasis(const LayoutValue& flexBasis) {
+void SContainer::setFlexBasis(const LayoutValue& flexBasis) {
     YGValue ygValue = toYGValue(flexBasis);
     if (ygValue.unit == YGUnitPercent) {
         YGNodeStyleSetFlexBasisPercent(m_yogaNode, ygValue.value);
@@ -260,77 +261,77 @@ void Container::setFlexBasis(const LayoutValue& flexBasis) {
     }
 }
 
-float Container::getFlex() const {
+float SContainer::getFlex() const {
     return YGNodeStyleGetFlex(m_yogaNode);
 }
 
-float Container::getFlexGrow() const {
+float SContainer::getFlexGrow() const {
     return YGNodeStyleGetFlexGrow(m_yogaNode);
 }
 
-float Container::getFlexShrink() const {
+float SContainer::getFlexShrink() const {
     return YGNodeStyleGetFlexShrink(m_yogaNode);
 }
 
-LayoutValue Container::getFlexBasis() const {
+LayoutValue SContainer::getFlexBasis() const {
     return fromYGValue(YGNodeStyleGetFlexBasis(m_yogaNode));
 }
 
 // --- 布局方向和对齐 ---
-void Container::setFlexDirection(FlexDirection direction) {
-    YGNodeStyleSetFlexDirection(m_yogaNode, static_cast<YGFlexDirection>(direction));
+void SContainer::setFlexDirection(FlexDirection direction) {
+    YGNodeStyleSetFlexDirection(m_yogaNode, static_cast<YGFlexDirection>(static_cast<int>(direction)));
 }
 
-void Container::setJustifyContent(Align justify) {
-    YGNodeStyleSetJustifyContent(m_yogaNode, static_cast<YGJustify>(justify));
+void SContainer::setJustifyContent(Align justify) {
+    YGNodeStyleSetJustifyContent(m_yogaNode, static_cast<YGJustify>(static_cast<int>(justify)));
 }
 
-void Container::setAlignItems(Align align) {
-    YGNodeStyleSetAlignItems(m_yogaNode, static_cast<YGAlign>(align));
+void SContainer::setAlignItems(Align align) {
+    YGNodeStyleSetAlignItems(m_yogaNode, static_cast<YGAlign>(static_cast<int>(align)));
 }
 
-void Container::setAlignSelf(Align align) {
-    YGNodeStyleSetAlignSelf(m_yogaNode, static_cast<YGAlign>(align));
+void SContainer::setAlignSelf(Align align) {
+    YGNodeStyleSetAlignSelf(m_yogaNode, static_cast<YGAlign>(static_cast<int>(align)));
 }
 
-void Container::setAlignContent(Align align) {
-    YGNodeStyleSetAlignContent(m_yogaNode, static_cast<YGAlign>(align));
+void SContainer::setAlignContent(Align align) {
+    YGNodeStyleSetAlignContent(m_yogaNode, static_cast<YGAlign>(static_cast<int>(align)));
 }
 
-Container::FlexDirection Container::getFlexDirection() const {
-    return static_cast<FlexDirection>(YGNodeStyleGetFlexDirection(m_yogaNode));
+FlexDirection SContainer::getFlexDirection() const {
+    return static_cast<sgui::FlexDirection>(static_cast<int>(YGNodeStyleGetFlexDirection(m_yogaNode)));
 }
 
-Container::Align Container::getJustifyContent() const {
-    return static_cast<Align>(YGNodeStyleGetJustifyContent(m_yogaNode));
+Align SContainer::getJustifyContent() const {
+    return static_cast<sgui::Align>(static_cast<int>(YGNodeStyleGetJustifyContent(m_yogaNode)));
 }
 
-Container::Align Container::getAlignItems() const {
-    return static_cast<Align>(YGNodeStyleGetAlignItems(m_yogaNode));
+Align SContainer::getAlignItems() const {
+    return static_cast<sgui::Align>(static_cast<int>(YGNodeStyleGetAlignItems(m_yogaNode)));
 }
 
-Container::Align Container::getAlignSelf() const {
-    return static_cast<Align>(YGNodeStyleGetAlignSelf(m_yogaNode));
+Align SContainer::getAlignSelf() const {
+    return static_cast<sgui::Align>(static_cast<int>(YGNodeStyleGetAlignSelf(m_yogaNode)));
 }
 
-Container::Align Container::getAlignContent() const {
-    return static_cast<Align>(YGNodeStyleGetAlignContent(m_yogaNode));
+Align SContainer::getAlignContent() const {
+    return static_cast<sgui::Align>(static_cast<int>(YGNodeStyleGetAlignContent(m_yogaNode)));
 }
 
 // --- 位置和定位 ---
-void Container::setPosition(PositionType positionType) {
+void SContainer::setPosition(PositionType positionType) {
     YGNodeStyleSetPositionType(m_yogaNode, static_cast<YGPositionType>(positionType));
 }
 
-void Container::setPosition(EdgeInsets position) {
+void SContainer::setPosition(EdgeInsets position) {
     setPositionValues(position);
 }
 
-Container::PositionType Container::getPositionType() const {
-    return static_cast<PositionType>(YGNodeStyleGetPositionType(m_yogaNode));
+PositionType SContainer::getPositionType() const {
+    return static_cast<sgui::PositionType>(YGNodeStyleGetPositionType(m_yogaNode));
 }
 
-EdgeInsets Container::getPosition() const {
+EdgeInsets SContainer::getPosition() const {
     return getEdgeValues([](YGNodeConstRef node, YGEdge edge) {
         YGValue value = YGNodeStyleGetPosition(node, edge);
         return value.value;
@@ -338,176 +339,231 @@ EdgeInsets Container::getPosition() const {
 }
 
 // --- 边距和内边距 ---
-void Container::setMargin(const EdgeInsets& margin) {
+void SContainer::setMargin(const EdgeInsets& margin) {
     setEdgeValues(YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, margin);
 }
 
-void Container::setPadding(const EdgeInsets& padding) {
+void SContainer::setPadding(const EdgeInsets& padding) {
     setEdgeValues(YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent, padding);
 }
 
-void Container::setBorder(const EdgeInsets& border) {
+void SContainer::setBorder(const EdgeInsets& border) {
     YGNodeStyleSetBorder(m_yogaNode, YGEdgeLeft, border.left.value);
     YGNodeStyleSetBorder(m_yogaNode, YGEdgeTop, border.top.value);
     YGNodeStyleSetBorder(m_yogaNode, YGEdgeRight, border.right.value);
     YGNodeStyleSetBorder(m_yogaNode, YGEdgeBottom, border.bottom.value);
 }
 
-EdgeInsets Container::getMargin() const {
+EdgeInsets SContainer::getMargin() const {
     return getEdgeValues([](YGNodeConstRef node, YGEdge edge) {
         return YGNodeLayoutGetMargin(node, edge);
     });
 }
 
-EdgeInsets Container::getPadding() const {
+EdgeInsets SContainer::getPadding() const {
     return getEdgeValues([](YGNodeConstRef node, YGEdge edge) {
         return YGNodeLayoutGetPadding(node, edge);
     });
 }
 
-EdgeInsets Container::getBorder() const {
+EdgeInsets SContainer::getBorder() const {
     return getEdgeValues([](YGNodeConstRef node, YGEdge edge) {
         return YGNodeLayoutGetBorder(node, edge);
     });
 }
 
 // --- 其他属性 ---
-void Container::setFlexWrap(FlexWrap wrap) {
-    YGNodeStyleSetFlexWrap(m_yogaNode, static_cast<YGWrap>(wrap));
+void SContainer::setFlexWrap(FlexWrap wrap) {
+    YGNodeStyleSetFlexWrap(m_yogaNode, static_cast<YGWrap>(static_cast<int>(wrap)));
 }
 
-void Container::setOverflow(Overflow overflow) {
-    YGNodeStyleSetOverflow(m_yogaNode, static_cast<YGOverflow>(overflow));
+void SContainer::setOverflow(Overflow overflow) {
+    YGNodeStyleSetOverflow(m_yogaNode, static_cast<YGOverflow>(static_cast<int>(overflow)));
 }
 
-void Container::setDisplay(Display display) {
-    YGNodeStyleSetDisplay(m_yogaNode, static_cast<YGDisplay>(display));
+void SContainer::setDisplay(Display display) {
+    YGNodeStyleSetDisplay(m_yogaNode, static_cast<YGDisplay>(static_cast<int>(display)));
 }
 
-void Container::setAspectRatio(float aspectRatio) {
+void SContainer::setAspectRatio(float aspectRatio) {
     YGNodeStyleSetAspectRatio(m_yogaNode, aspectRatio);
 }
 
-void Container::setDirection(Direction direction) {
-    YGNodeStyleSetDirection(m_yogaNode, static_cast<YGDirection>(direction));
+void SContainer::setDirection(Direction direction) {
+    YGNodeStyleSetDirection(m_yogaNode, static_cast<YGDirection>(static_cast<int>(direction)));
 }
 
-Container::FlexWrap Container::getFlexWrap() const {
-    return static_cast<FlexWrap>(YGNodeStyleGetFlexWrap(m_yogaNode));
+FlexWrap SContainer::getFlexWrap() const {
+    return static_cast<sgui::FlexWrap>(YGNodeStyleGetFlexWrap(m_yogaNode));
 }
 
-Container::Overflow Container::getOverflow() const {
-    return static_cast<Overflow>(YGNodeStyleGetOverflow(m_yogaNode));
+Overflow SContainer::getOverflow() const {
+    return static_cast<sgui::Overflow>(YGNodeStyleGetOverflow(m_yogaNode));
 }
 
-Container::Display Container::getDisplay() const {
-    return static_cast<Display>(YGNodeStyleGetDisplay(m_yogaNode));
+Display SContainer::getDisplay() const {
+    return static_cast<sgui::Display>(YGNodeStyleGetDisplay(m_yogaNode));
 }
 
-float Container::getAspectRatio() const {
+float SContainer::getAspectRatio() const {
     return YGNodeStyleGetAspectRatio(m_yogaNode);
 }
 
-Container::Direction Container::getDirection() const {
-    return static_cast<Direction>(YGNodeStyleGetDirection(m_yogaNode));
+Direction SContainer::getDirection() const {
+    return static_cast<sgui::Direction>(YGNodeStyleGetDirection(m_yogaNode));
 }
 
 // ====================================================================
 // 布局计算和查询
 // ====================================================================
 
-void Container::calculateLayout(float width, float height) {
+void SContainer::calculateLayout(float width, float height) {
     YGNodeCalculateLayout(m_yogaNode, width, height, YGDirectionLTR);
 }
 
-float Container::getLeft() const {
+float SContainer::getLeft() const {
     return YGNodeLayoutGetLeft(m_yogaNode);
 }
 
-float Container::getTop() const {
+float SContainer::getTop() const {
     return YGNodeLayoutGetTop(m_yogaNode);
 }
 
-float Container::getRight() const {
+float SContainer::getRight() const {
     return YGNodeLayoutGetRight(m_yogaNode);
 }
 
-float Container::getBottom() const {
+float SContainer::getBottom() const {
     return YGNodeLayoutGetBottom(m_yogaNode);
 }
 
-float Container::getLayoutWidth() const {
+float SContainer::getLayoutWidth() const {
     return YGNodeLayoutGetWidth(m_yogaNode);
 }
 
-float Container::getLayoutHeight() const {
+float SContainer::getLayoutHeight() const {
     return YGNodeLayoutGetHeight(m_yogaNode);
 }
 
-float Container::getLayoutMarginLeft() const {
+float SContainer::getLayoutMarginLeft() const {
     return YGNodeLayoutGetMargin(m_yogaNode, YGEdgeLeft);
 }
 
-float Container::getLayoutMarginTop() const {
+float SContainer::getLayoutMarginTop() const {
     return YGNodeLayoutGetMargin(m_yogaNode, YGEdgeTop);
 }
 
-float Container::getLayoutMarginRight() const {
+float SContainer::getLayoutMarginRight() const {
     return YGNodeLayoutGetMargin(m_yogaNode, YGEdgeRight);
 }
 
-float Container::getLayoutMarginBottom() const {
+float SContainer::getLayoutMarginBottom() const {
     return YGNodeLayoutGetMargin(m_yogaNode, YGEdgeBottom);
 }
 
-float Container::getLayoutPaddingLeft() const {
+float SContainer::getLayoutPaddingLeft() const {
     return YGNodeLayoutGetPadding(m_yogaNode, YGEdgeLeft);
 }
 
-float Container::getLayoutPaddingTop() const {
+float SContainer::getLayoutPaddingTop() const {
     return YGNodeLayoutGetPadding(m_yogaNode, YGEdgeTop);
 }
 
-float Container::getLayoutPaddingRight() const {
+float SContainer::getLayoutPaddingRight() const {
     return YGNodeLayoutGetPadding(m_yogaNode, YGEdgeRight);
 }
 
-float Container::getLayoutPaddingBottom() const {
+float SContainer::getLayoutPaddingBottom() const {
     return YGNodeLayoutGetPadding(m_yogaNode, YGEdgeBottom);
 }
 
-float Container::getLayoutBorderLeft() const {
+float SContainer::getLayoutBorderLeft() const {
     return YGNodeLayoutGetBorder(m_yogaNode, YGEdgeLeft);
 }
 
-float Container::getLayoutBorderTop() const {
+float SContainer::getLayoutBorderTop() const {
     return YGNodeLayoutGetBorder(m_yogaNode, YGEdgeTop);
 }
 
-float Container::getLayoutBorderRight() const {
+float SContainer::getLayoutBorderRight() const {
     return YGNodeLayoutGetBorder(m_yogaNode, YGEdgeRight);
 }
 
-float Container::getLayoutBorderBottom() const {
+float SContainer::getLayoutBorderBottom() const {
     return YGNodeLayoutGetBorder(m_yogaNode, YGEdgeBottom);
 }
 
-bool Container::isDirty() const {
-    return YGNodeIsDirty(m_yogaNode);
+bool SContainer::isDirty() const {
+    // return YGNodeIsDirty(m_yogaNode);
+    return m_dirty;
 }
 
-void Container::markDirty() {
-    YGNodeMarkDirty(m_yogaNode);
+void SContainer::markDirty() {
+    // YGNodeMarkDirty(m_yogaNode);
+    m_dirty = true;
 }
+
+void SContainer::clearDirty() {
+    m_dirty = false;
+}
+
 
 // ====================================================================
 // 工具函数
 // ====================================================================
 
-void Container::printLayoutTree(int depth) const {
+void SContainer::renderTree(cairo_t* cr) {
+    if (!cr) return;
+    
+    // 保存当前状态
+    cairo_save(cr);
+    
+    // 获取布局信息
+    float left = getLeft();
+    float top = getTop();
+    float width = getLayoutWidth();
+    float height = getLayoutHeight();
+    float paddingLeft = getLayoutPaddingLeft();
+    float paddingTop = getLayoutPaddingTop();
+    float paddingRight = getLayoutPaddingRight();
+    float paddingBottom = getLayoutPaddingBottom();
+    
+    // 移动到容器位置
+    cairo_translate(cr, left, top);
+    
+    // 设置裁剪区域（考虑溢出设置）
+    Overflow overflow = getOverflow();
+    if (overflow == Overflow::Hidden) {
+        cairo_rectangle(cr, 0, 0, width, height);
+        cairo_clip(cr);
+    }
+    
+    // 绘制背景
+    cairo_save(cr);
+    render(cr); // 调用子类的render方法
+    cairo_restore(cr);
+    
+    // 移动到内容区域（考虑内边距）
+    cairo_translate(cr, paddingLeft, paddingTop);
+    
+    // 绘制子节点
+    float contentWidth = width - paddingLeft - paddingRight;
+    float contentHeight = height - paddingTop - paddingBottom;
+    
+    for (const auto& child : m_children) {
+        if (child->getDisplay() != Display::None) {
+            child->renderTree(cr);
+        }
+    }
+    
+    // 恢复状态
+    cairo_restore(cr);
+}
+
+void SContainer::printLayoutTree(int depth) const {
     std::string indent(depth * 2, ' ');
     
-    std::cout << indent << "Container:\n";
+    std::cout << indent << "SContainer:\n";
     std::cout << indent << "  位置: (" << getLeft() << ", " << getTop() << ")\n";
     std::cout << indent << "  尺寸: " << getLayoutWidth() << " x " << getLayoutHeight() << "\n";
     std::cout << indent << "  边距: L=" << getLayoutMarginLeft()
@@ -529,7 +585,7 @@ void Container::printLayoutTree(int depth) const {
 // 私有辅助函数
 // ====================================================================
 
-YGValue Container::toYGValue(const LayoutValue& value) const {
+YGValue SContainer::toYGValue(const LayoutValue& value) const {
     if (value.isAuto) {
         return YGValueAuto;
     } else if (value.isPercent) {
@@ -539,7 +595,7 @@ YGValue Container::toYGValue(const LayoutValue& value) const {
     }
 }
 
-LayoutValue Container::fromYGValue(const YGValue& value) const {
+LayoutValue SContainer::fromYGValue(const YGValue& value) const {
     LayoutValue result;
     result.value = value.value;
     result.isPercent = (value.unit == YGUnitPercent);
@@ -547,7 +603,7 @@ LayoutValue Container::fromYGValue(const YGValue& value) const {
     return result;
 }
 
-void Container::setEdgeValues(void (*setter)(YGNodeRef, YGEdge, float), 
+void SContainer::setEdgeValues(void (*setter)(YGNodeRef, YGEdge, float), 
                              void (*setterPercent)(YGNodeRef, YGEdge, float),
                              const EdgeInsets& edge) {
     // Left
@@ -587,7 +643,7 @@ void Container::setEdgeValues(void (*setter)(YGNodeRef, YGEdge, float),
     }
 }
 
-EdgeInsets Container::getEdgeValues(float (*getter)(YGNodeConstRef, YGEdge)) const {
+EdgeInsets SContainer::getEdgeValues(float (*getter)(YGNodeConstRef, YGEdge)) const {
     EdgeInsets result;
     result.left.value = getter(m_yogaNode, YGEdgeLeft);
     result.top.value = getter(m_yogaNode, YGEdgeTop);
@@ -596,7 +652,7 @@ EdgeInsets Container::getEdgeValues(float (*getter)(YGNodeConstRef, YGEdge)) con
     return result;
 }
 
-void Container::setPositionValues(const EdgeInsets& position) {
+void SContainer::setPositionValues(const EdgeInsets& position) {
     // Left
     if (position.left.isPercent) {
         YGNodeStyleSetPositionPercent(m_yogaNode, YGEdgeLeft, position.left.value);

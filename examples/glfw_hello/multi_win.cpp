@@ -6,17 +6,17 @@
 #include <algorithm>
 
 // 前向声明
-class WindowManager;
+class SWindowManager;
 
 // 单个窗口类
-class Window {
+class ExampleWindow {
 public:
-    Window(int width, int height, const char* title, WindowManager* manager)
+    ExampleWindow(int width, int height, const char* title, SWindowManager* manager)
         : width_(width), height_(height), title_(title), manager_(manager), window_(nullptr) {}
 
-    friend class WindowManager; // 允许WindowManager访问私有成员
+    friend class SWindowManager; // 允许WindowManager访问私有成员
 
-    ~Window() {
+    ~ExampleWindow() {
         if (window_) {
             glfwDestroyWindow(window_);
         }
@@ -63,12 +63,12 @@ private:
     int width_;
     int height_;
     const char* title_;
-    WindowManager* manager_;
+    SWindowManager* manager_;
     GLFWwindow* window_;
 
     // 窗口大小回调
     static void WindowSizeCallback(GLFWwindow* window, int width, int height) {
-        auto win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        auto win = static_cast<ExampleWindow*>(glfwGetWindowUserPointer(window));
         if (win) {
             win->width_ = width;
             win->height_ = height;
@@ -78,7 +78,7 @@ private:
 
     // 窗口关闭回调
     static void WindowCloseCallback(GLFWwindow* window) {
-        auto win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        auto win = static_cast<ExampleWindow*>(glfwGetWindowUserPointer(window));
         if (win) {
             std::cout << "Window close requested: " << win->title_ << std::endl;
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -87,11 +87,11 @@ private:
 };
 
 // 窗口管理器类
-class WindowManager {
+class SWindowManager {
 public:
-    WindowManager() : glfw_initialized_(false) {}
+    SWindowManager() : glfw_initialized_(false) {}
 
-    ~WindowManager() {
+    ~SWindowManager() {
         // 清理所有窗口
         windows_.clear();
         if (glfw_initialized_) {
@@ -100,7 +100,7 @@ public:
     }
 
     // 创建新窗口
-    std::shared_ptr<Window> CreateWindow(int width, int height, const char* title) {
+    std::shared_ptr<ExampleWindow> CreateWindow(int width, int height, const char* title) {
         // 初始化GLFW（如果还没有初始化）
         if (!glfw_initialized_) {
             if (!glfwInit()) {
@@ -110,7 +110,7 @@ public:
             glfw_initialized_ = true;
         }
 
-        auto window = std::make_shared<Window>(width, height, title, this);
+        auto window = std::make_shared<ExampleWindow>(width, height, title, this);
         if (window->Initialize()) {
             windows_.push_back(window);
             return window;
@@ -123,7 +123,7 @@ public:
         auto it = windows_.begin();
         while (it != windows_.end()) {
             if ((*it)->ShouldClose()) {
-                std::cout << "WindowManager: Removing closed window: " << (*it)->GetTitle() << std::endl;
+                std::cout << "SWindowManager: Removing closed window: " << (*it)->GetTitle() << std::endl;
                 it = windows_.erase(it);
             } else {
                 ++it;
@@ -164,14 +164,14 @@ public:
     }
 
 private:
-    std::vector<std::shared_ptr<Window>> windows_;
+    std::vector<std::shared_ptr<ExampleWindow>> windows_;
     bool glfw_initialized_;
 };
 
 
 int main() {
     // 创建窗口管理器
-    WindowManager manager;
+    SWindowManager manager;
 
     // 创建多个窗口
     manager.CreateWindow(800, 600, "SGUI - Main Window");

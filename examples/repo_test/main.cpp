@@ -12,7 +12,7 @@ int main() {
     std::cout << "==================================" << std::endl;
 
     // 创建窗口管理器实例
-    WindowManager manager;
+    sgui::SWindowManager manager;
 
     std::cout << "Creating multiple windows..." << std::endl;
 

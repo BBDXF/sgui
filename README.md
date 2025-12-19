@@ -7,7 +7,7 @@ Simple GUI. 虽然叫simple GUI, 但是一点也不简单。
 - 支持Flex Layout.
 - 支持CSS美化Controls.
 - 支持window menagement和builder.
-- 实现基本的UI控件，比如`Container, Element, Input, Image, ScrollView`
+- 实现基本的UI控件，比如`SContainer, Element, Input, Image, ScrollView`
 - 使用C++ Proxy技术抽象class与实现。
 - (暂时不实现) 最后，导出所有核心功能接口到C ABI, 方便其他语言调用。
 

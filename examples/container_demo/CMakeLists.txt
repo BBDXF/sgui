@@ -1,4 +1,4 @@
-# Container Demo CMakeLists.txt
+# SContainer Demo CMakeLists.txt
 
 # 添加container demo可执行文件
 add_executable(container_demo

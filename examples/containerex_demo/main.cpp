@@ -11,14 +11,14 @@ using namespace sgui;
 void demonstrateBackgroundFeatures() {
     std::cout << "=== 背景功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<ContainerEx>();
+    auto container = std::make_shared<SContainerEx>();
     container->setWidth(300);
     container->setHeight(200);
     
     // 设置背景色
     container->setBackgroundColor(Color::fromRGB(255, 200, 200)); // 浅红色
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -26,7 +26,7 @@ void demonstrateBackgroundFeatures() {
     container->clearBackground();
     container->setBackgroundImage("background.jpg");
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -40,7 +40,7 @@ void demonstrateBackgroundFeatures() {
     gradient.stops.push_back(GradientStop(Color::fromRGB(0, 0, 255), 1.0f));    // 蓝色
     container->setBackgroundGradient(gradient);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
 }
@@ -48,7 +48,7 @@ void demonstrateBackgroundFeatures() {
 void demonstrateBorderFeatures() {
     std::cout << "=== 边框功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<ContainerEx>();
+    auto container = std::make_shared<SContainerEx>();
     container->setWidth(300);
     container->setHeight(200);
     
@@ -56,14 +56,14 @@ void demonstrateBorderFeatures() {
     container->setBorderColor(Color::fromRGB(0, 0, 255)); // 蓝色边框
     container->setBorderStyle(BorderStyle::Dashed);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
     // 设置圆角
     container->setBorderRadius(EdgeInsets::All(10.0f));
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -76,7 +76,7 @@ void demonstrateBorderFeatures() {
     shadow.spreadRadius = 2.0f;
     container->setBoxShadow(shadow);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
 }
@@ -84,7 +84,7 @@ void demonstrateBorderFeatures() {
 void demonstrateTextFeatures() {
     std::cout << "=== 文本功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<ContainerEx>();
+    auto container = std::make_shared<SContainerEx>();
     container->setWidth(400);
     container->setHeight(150);
     container->setPadding(EdgeInsets::All(20));
@@ -93,7 +93,7 @@ void demonstrateTextFeatures() {
     container->setText("Hello, ContainerEx!");
     container->setColor(Color::fromRGB(0, 0, 0)); // 黑色文本
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -101,7 +101,7 @@ void demonstrateTextFeatures() {
     container->setFontSize(24.0f);
     container->setFontWeight(FontWeight::Bold);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -110,7 +110,7 @@ void demonstrateTextFeatures() {
     container->setTextAlign(TextAlign::Center);
     container->setFontFamily("Times New Roman");
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -120,7 +120,7 @@ void demonstrateTextFeatures() {
     container->setTextIndent(20.0f);
     container->setTextAlign(TextAlign::Left);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
     
@@ -129,7 +129,7 @@ void demonstrateTextFeatures() {
     container->setTextDecoration(TextDecoration::Underline);
     container->setTextOverflow(TextOverflow::Ellipsis);
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
 }
@@ -137,7 +137,7 @@ void demonstrateTextFeatures() {
 void demonstrateCombinedFeatures() {
     std::cout << "=== 综合功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<ContainerEx>();
+    auto container = std::make_shared<SContainerEx>();
     container->setWidth(400);
     container->setHeight(250);
     container->setPadding(EdgeInsets::All(20));
@@ -167,7 +167,7 @@ void demonstrateCombinedFeatures() {
     container->setLineHeight(1.6f);
     
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
 }
@@ -175,7 +175,7 @@ void demonstrateCombinedFeatures() {
 void demonstrateStyleManagement() {
     std::cout << "=== 样式管理演示 ===" << std::endl;
     
-    auto container = std::make_shared<ContainerEx>();
+    auto container = std::make_shared<SContainerEx>();
     container->setWidth(300);
     container->setHeight(100);
     
@@ -191,13 +191,13 @@ void demonstrateStyleManagement() {
     std::cout << "  有文本: " << (container->hasTextStyle() ? "是" : "否") << std::endl;
     
     container->calculateLayout();
-    container->draw();
+    container->render(0);
     
     std::cout << "\n清除背景后:" << std::endl;
     container->clearBackground();
     std::cout << "  有背景: " << (container->hasBackground() ? "是" : "否") << std::endl;
     
-    container->draw();
+    container->render(0);
     
     std::cout << "\n重置所有样式后:" << std::endl;
     container->resetStyles();
@@ -205,7 +205,7 @@ void demonstrateStyleManagement() {
     std::cout << "  有边框: " << (container->hasBorderStyle() ? "是" : "否") << std::endl;
     std::cout << "  有文本: " << (container->hasTextStyle() ? "是" : "否") << std::endl;
     
-    container->draw();
+    container->render(0);
     
     std::cout << "\n";
 }
