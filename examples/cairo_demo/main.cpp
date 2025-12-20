@@ -33,66 +33,66 @@ int main() {
         
         // 创建根容器
         auto rootContainer = std::make_shared<SContainerEx>();
-        rootContainer->setWidth(LayoutValue::Point(800));
-        rootContainer->setHeight(LayoutValue::Point(600));
         rootContainer->setFlexDirection(FlexDirection::Column);
-        rootContainer->setPadding(EdgeInsets::All(20));
+        rootContainer->setBackgroundColor(Color::fromHex(0xFFFFFF));
+        rootContainer->setDisplay(Display::Flex);
         
         // 创建标题容器
         auto titleContainer = std::make_shared<SContainerEx>();
         titleContainer->setText("Cairo渲染演示");
         titleContainer->setBackgroundColor(Color::fromRGB(52, 152, 219)); // 蓝色
-        titleContainer->setWidth(LayoutValue::Point(760));
-        titleContainer->setHeight(LayoutValue::Point(80));
-        titleContainer->setMargin(EdgeInsets::Only(0, 0, 0, 10));
+        titleContainer->setHeight(30);
         
         // 创建内容容器（水平布局）
         auto contentContainer = std::make_shared<SContainerEx>();
-        contentContainer->setWidth(LayoutValue::Point(760));
-        contentContainer->setHeight(LayoutValue::Point(200));
+        contentContainer->setFlex(1.0);
         contentContainer->setFlexDirection(FlexDirection::Row);
-        contentContainer->setMargin(EdgeInsets::Only(0, 0, 0, 10));
+        contentContainer->setFlexWrap(FlexWrap::Wrap);
+        contentContainer->setText("Body");
+        contentContainer->setDisplay(Display::Flex);
+        contentContainer->setGap(Gutter::All, LayoutValue::Point(10));
         
         // 创建三个彩色方块
         auto redBox = std::make_shared<SContainerEx>();
-        redBox->setText("红色");
+        redBox->setText("红色 - body");
         redBox->setBackgroundColor(Color::fromRGB(231, 76, 60)); // 红色
         redBox->setWidth(LayoutValue::Point(240));
         redBox->setHeight(LayoutValue::Point(200));
-        redBox->setMargin(EdgeInsets::Only(0, 0, 10, 0));
         
         auto greenBox = std::make_shared<SContainerEx>();
-        greenBox->setText("绿色");
+        greenBox->setText("绿色 - body");
         greenBox->setBackgroundColor(Color::fromRGB(46, 204, 113)); // 绿色
         greenBox->setWidth(LayoutValue::Point(240));
         greenBox->setHeight(LayoutValue::Point(200));
-        greenBox->setMargin(EdgeInsets::Only(0, 0, 10, 0));
         
         auto blueBox = std::make_shared<SContainerEx>();
-        blueBox->setText("蓝色");
+        blueBox->setText("蓝色 - body");
         blueBox->setBackgroundColor(Color::fromRGB(155, 89, 182)); // 紫色
         blueBox->setWidth(LayoutValue::Point(240));
         blueBox->setHeight(LayoutValue::Point(200));
         
         // 创建底部容器
         auto bottomContainer = std::make_shared<SContainerEx>();
-        bottomContainer->setWidth(LayoutValue::Point(760));
-        bottomContainer->setHeight(LayoutValue::Point(240));
+        bottomContainer->setHeight(LayoutValue::Point(100));
         bottomContainer->setFlexDirection(FlexDirection::Row);
+        bottomContainer->setBackgroundColor(Color(0xFF, 0x10, 0x1F));
+        bottomContainer->setText("bottom");
+        bottomContainer->setBorder(EdgeInsets::All(2.0));
+        bottomContainer->setDisplay(Display::Flex);
         
         // 创建两个圆角矩形演示
         auto roundedBox1 = std::make_shared<SContainerEx>();
-        roundedBox1->setText("黄色");
+        roundedBox1->setText("黄色 - bot");
         roundedBox1->setBackgroundColor(Color::fromRGB(241, 196, 15)); // 黄色
-        roundedBox1->setWidth(LayoutValue::Point(370));
-        roundedBox1->setHeight(LayoutValue::Point(240));
+        roundedBox1->setWidth(LayoutValue::Point(100));
+        roundedBox1->setHeight(LayoutValue::Point(90));
         roundedBox1->setMargin(EdgeInsets::Only(0, 0, 20, 0));
         
         auto roundedBox2 = std::make_shared<SContainerEx>();
-        roundedBox2->setText("橙色");
+        roundedBox2->setText("橙色 - bot");
         roundedBox2->setBackgroundColor(Color::fromRGB(230, 126, 34)); // 橙色
-        roundedBox2->setWidth(LayoutValue::Point(370));
-        roundedBox2->setHeight(LayoutValue::Point(240));
+        roundedBox2->setWidth(LayoutValue::Point(100));
+        roundedBox2->setHeight(LayoutValue::Point(90));
         
         // 构建容器树
         contentContainer->addChild(redBox);

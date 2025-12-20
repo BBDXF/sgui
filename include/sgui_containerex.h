@@ -172,9 +172,8 @@ private:
     Color m_backgroundColor;
     std::string m_backgroundImage;
     BackgroundGradient m_backgroundGradient;
-    bool m_hasBackgroundColor = false;
-    bool m_hasBackgroundImage = false;
-    bool m_hasBackgroundGradient = false;
+    bool m_hasBackgroundImage = false;        // 保留：检查图片路径是否为空
+    bool m_hasBackgroundGradient = false;     // 保留：检查渐变是否有停止点
     
     // ====================================================================
     // 边框样式成员变量
@@ -183,10 +182,6 @@ private:
     BorderStyle m_borderStyle = BorderStyle::Solid;
     EdgeInsets m_borderRadius;
     BoxShadow m_boxShadow;
-    bool m_hasBorderColor = false;
-    bool m_hasBorderStyle = false;
-    bool m_hasBorderRadius = false;
-    bool m_hasBoxShadow = false;
     
     // ====================================================================
     // 文本样式成员变量
@@ -202,8 +197,7 @@ private:
     float m_lineHeight = 1.2f;
     float m_textIndent = 0.0f;
     std::string m_text;
-    bool m_hasTextColor = false;
-    bool m_hasTextContent = false;
+    bool m_hasTextContent = false;            // 保留：检查文本是否为空
     
     // ====================================================================
     // 私有辅助函数

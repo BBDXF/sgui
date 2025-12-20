@@ -12,16 +12,10 @@ add_executable(multi_win
     glfw_hello/multi_win.cpp
 )
 
-# 窗口管理库demo
-add_executable(repo_test
-    repo_test/main.cpp
-)
+add_subdirectory(color_test)
 
 # Yoga layout demo
 add_subdirectory(yoga_demo)
-
-# SContainer class demo
-add_subdirectory(container_demo)
 
 # ContainerEx class demo
 add_subdirectory(containerex_demo)
@@ -43,24 +37,12 @@ target_link_libraries(multi_win
     ${OPENGL_LIBRARIES}
 )
 
-target_link_libraries(repo_test
-    PRIVATE
-    glfw
-    ${OPENGL_LIBRARIES}
-    sgui_static  # 使用静态库
-)
-
-
 # 包含目录 - 只需要include目录，因为库已经处理了内部依赖
 target_include_directories(glfw_hello PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
 
 target_include_directories(multi_win PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-)
-
-target_include_directories(repo_test PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
 

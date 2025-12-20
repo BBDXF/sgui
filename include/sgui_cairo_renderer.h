@@ -2,6 +2,7 @@
  * SCairoRenderer.h - Cairo渲染器
  * 
  * 直接绑定window id进行surface绘制，避免了复杂的OpenGL纹理转换机制
+ * 支持双缓冲以减少闪烁
  */
 
 #pragma once
@@ -17,7 +18,8 @@ namespace sgui {
 /**
  * Cairo渲染器类
  * 
- * 直接绑定window id进行surface绘制，简化了原有的OpenGL纹理转换机制
+ * 使用双缓冲技术：先绘制到内存中的后缓冲，然后一次性复制到窗口表面
+ * 这样可以避免绘制过程中的闪烁问题
  */
 class SCairoRenderer {
 public:
@@ -49,19 +51,19 @@ public:
     
     /**
      * 获取Cairo绘制上下文
-     * @return Cairo上下文指针
+     * @return Cairo上下文指针（指向后缓冲）
      */
-    cairo_t* getContext() const { return m_cairo; }
+    cairo_t* getContext() const { return m_backCairo; }
     
     /**
      * 开始绘制
-     * 清除表面并准备绘制
+     * 清除后缓冲并准备绘制
      */
     void begin();
     
     /**
      * 结束绘制
-     * 直接刷新到窗口，无需纹理更新
+     * 将后缓冲内容复制到前缓冲（窗口）
      */
     void end();
     
@@ -140,13 +142,17 @@ private:
     int m_width;
     int m_height;
     
-    // Cairo相关
-    cairo_surface_t* m_surface;
-    cairo_t* m_cairo;
+    // 前缓冲（直接绑定到窗口）
+    cairo_surface_t* m_frontSurface;
+    cairo_t* m_frontCairo;
+    
+    // 后缓冲（内存中的图像表面）
+    cairo_surface_t* m_backSurface;
+    cairo_t* m_backCairo;
     
     /**
      * 初始化Cairo表面
-     * 根据平台选择合适的surface类型
+     * 创建前缓冲和后缓冲
      */
     void initCairoSurface();
     
@@ -154,6 +160,11 @@ private:
      * 清理Cairo表面
      */
     void cleanupCairoSurface();
+    
+    /**
+     * 将后缓冲内容复制到前缓冲
+     */
+    void swapBuffers();
 };
 
 } // namespace sgui

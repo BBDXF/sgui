@@ -86,11 +86,46 @@ public:
     // ====================================================================
     
     // --- 尺寸设置 ---
+    /**
+     * 设置容器的宽度
+     * 在布局中定义容器的水平尺寸，可以是固定值、百分比或自动
+     * @param width 宽度值，支持像素、百分比、自动等模式
+     */
     void setWidth(const LayoutValue& width);
+    
+    /**
+     * 设置容器的高度
+     * 在布局中定义容器的垂直尺寸，可以是固定值、百分比或自动
+     * @param height 高度值，支持像素、百分比、自动等模式
+     */
     void setHeight(const LayoutValue& height);
+    
+    /**
+     * 设置容器的最小宽度
+     * 在布局中限制容器的最小水平尺寸，防止容器收缩到小于指定值
+     * @param minWidth 最小宽度值，支持像素、百分比等模式
+     */
     void setMinWidth(const LayoutValue& minWidth);
+    
+    /**
+     * 设置容器的最小高度
+     * 在布局中限制容器的最小垂直尺寸，防止容器收缩到小于指定值
+     * @param minHeight 最小高度值，支持像素、百分比等模式
+     */
     void setMinHeight(const LayoutValue& minHeight);
+    
+    /**
+     * 设置容器的最大宽度
+     * 在布局中限制容器的最大水平尺寸，防止容器扩展超过指定值
+     * @param maxWidth 最大宽度值，支持像素、百分比等模式
+     */
     void setMaxWidth(const LayoutValue& maxWidth);
+    
+    /**
+     * 设置容器的最大高度
+     * 在布局中限制容器的最大垂直尺寸，防止容器扩展超过指定值
+     * @param maxHeight 最大高度值，支持像素、百分比等模式
+     */
     void setMaxHeight(const LayoutValue& maxHeight);
     
     LayoutValue getWidth() const;
@@ -101,9 +136,36 @@ public:
     LayoutValue getMaxHeight() const;
     
     // --- Flex属性 ---
+    /**
+     * 设置Flex属性的简写
+     * 在布局中同时设置flex-grow、flex-shrink和flex-basis三个属性
+     * 控制容器在Flex容器中的伸缩行为和基础尺寸
+     * @param flex Flex值，影响容器的伸缩比例
+     */
     void setFlex(float flex);
+    
+    /**
+     * 设置Flex增长系数
+     * 在布局中定义容器在Flex容器中的放大比例
+     * 当容器有剩余空间时，按此比例分配空间
+     * @param flexGrow 增长系数，默认为0，负值无效
+     */
     void setFlexGrow(float flexGrow);
+    
+    /**
+     * 设置Flex收缩系数
+     * 在布局中定义容器在Flex容器中的缩小比例
+     * 当容器空间不足时，按此比例缩小容器
+     * @param flexShrink 收缩系数，默认为1，负值无效
+     */
     void setFlexShrink(float flexShrink);
+    
+    /**
+     * 设置Flex基础尺寸
+     * 在布局中定义容器在分配剩余空间之前的基础尺寸
+     * 可以是固定值、百分比或auto
+     * @param flexBasis 基础尺寸值
+     */
     void setFlexBasis(const LayoutValue& flexBasis);
     
     float getFlex() const;
@@ -112,10 +174,44 @@ public:
     LayoutValue getFlexBasis() const;
     
     // --- 布局方向和对齐 ---
+    /**
+     * 设置Flex方向
+     * 在布局中定义子元素的排列方向（水平或垂直）
+     * 控制主轴的方向，影响子元素的排列方式
+     * @param direction Flex方向：ROW(水平)、COLUMN(垂直)等
+     */
     void setFlexDirection(FlexDirection direction);
+    
+    /**
+     * 设置主轴对齐方式
+     * 在布局中定义子元素在主轴上的对齐方式
+     * 控制子元素在主轴方向上的分布和间距
+     * @param justify 主轴对齐方式：FLEX_START、CENTER、FLEX_END、SPACE_BETWEEN等
+     */
     void setJustifyContent(Align justify);
+    
+    /**
+     * 设置交叉轴对齐方式
+     * 在布局中定义子元素在交叉轴上的对齐方式
+     * 控制所有子元素在交叉轴方向上的对齐
+     * @param align 交叉轴对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH等
+     */
     void setAlignItems(Align align);
+    
+    /**
+     * 设置单个容器的交叉轴对齐方式
+     * 在布局中覆盖父容器的align-items设置
+     * 只影响当前容器在交叉轴上的对齐方式
+     * @param align 交叉轴对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH、AUTO等
+     */
     void setAlignSelf(Align align);
+    
+    /**
+     * 设置多行容器的交叉轴对齐方式
+     * 在布局中定义多行Flex容器中行的对齐方式
+     * 当flex-wrap为wrap时，控制多行在交叉轴上的分布
+     * @param align 多行对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH、SPACE_BETWEEN等
+     */
     void setAlignContent(Align align);
     
     FlexDirection getFlexDirection() const;
@@ -125,15 +221,48 @@ public:
     Align getAlignContent() const;
     
     // --- 位置和定位 ---
+    /**
+     * 设置定位类型
+     * 在布局中定义容器的定位方式（相对定位或绝对定位）
+     * 影响容器在父容器中的位置计算方式
+     * @param positionType 定位类型：RELATIVE(相对)、ABSOLUTE(绝对)
+     */
     void setPosition(PositionType positionType);
+    
+    /**
+     * 设置容器的位置偏移
+     * 在布局中定义容器相对于父容器的位置偏移量
+     * 支持上、右、下、左四个方向的独立设置
+     * @param position 位置偏移值，包含top、right、bottom、left四个方向
+     */
     void setPosition(EdgeInsets position);
     
     PositionType getPositionType() const;
     EdgeInsets getPosition() const;
     
     // --- 边距和内边距 ---
+    /**
+     * 设置外边距
+     * 在布局中定义容器与相邻元素之间的空间
+     * 影响容器与其他元素的距离和整体布局间距
+     * @param margin 外边距值，包含top、right、bottom、left四个方向
+     */
     void setMargin(const EdgeInsets& margin);
+    
+    /**
+     * 设置内边距
+     * 在布局中定义容器内容与边框之间的空间
+     * 影响容器内部内容的显示区域和布局
+     * @param padding 内边距值，包含top、right、bottom、left四个方向
+     */
     void setPadding(const EdgeInsets& padding);
+    
+    /**
+     * 设置边框宽度
+     * 在布局中定义容器边框的宽度
+     * 影响容器的总尺寸和内部内容的可用空间
+     * @param border 边框宽度值，包含top、right、bottom、left四个方向
+     */
     void setBorder(const EdgeInsets& border);
     
     EdgeInsets getMargin() const;
@@ -141,17 +270,98 @@ public:
     EdgeInsets getBorder() const;
     
     // --- 其他属性 ---
+    /**
+     * 设置Flex换行方式
+     * 在布局中定义子元素是否允许换行
+     * 控制当容器空间不足时子元素的排列方式
+     * @param wrap 换行方式：NOWRAP(不换行)、WRAP(换行)、WRAP_REVERSE(反向换行)
+     */
     void setFlexWrap(FlexWrap wrap);
+    
+    /**
+     * 设置溢出处理方式
+     * 在布局中定义当内容超出容器尺寸时的处理方式
+     * 控制是否显示滚动条或裁剪超出内容
+     * @param overflow 溢出方式：VISIBLE(可见)、HIDDEN(隐藏)、SCROLL(滚动)
+     */
     void setOverflow(Overflow overflow);
+    
+    /**
+     * 设置显示类型
+     * 在布局中定义容器的显示类型
+     * 控制容器是否参与布局计算和显示
+     * @param display 显示类型：FLEX(Flex布局)、NONE(不显示)
+     */
     void setDisplay(Display display);
+    
+    /**
+     * 设置宽高比
+     * 在布局中定义容器的宽高比例
+     * 用于保持容器的特定比例，常用于图片和视频元素
+     * @param aspectRatio 宽高比例值，宽度/高度
+     */
     void setAspectRatio(float aspectRatio);
+    
+    /**
+     * 设置文本方向
+     * 在布局中定义文本的书写方向
+     * 影响文本的排列方向和对齐方式
+     * @param direction 文本方向：INHERIT(继承)、LTR(从左到右)、RTL(从右到左)
+     */
     void setDirection(Direction direction);
+    
+    // --- Gap 属性 ---
+    /**
+     * 设置间距
+     * 在布局中定义子元素之间的间距
+     * @param gutter 间距类型：COLUMN(列间距)、ROW(行间距)、ALL(所有间距)
+     * @param gap 间距值，支持像素、百分比等
+     */
+    void setGap(Gutter gutter, const LayoutValue& gap);
+    
+    /**
+     * 设置列间距
+     * 在布局中定义子元素在列方向（水平）的间距
+     * @param gap 列间距值
+     */
+    void setColumnGap(const LayoutValue& gap);
+    
+    /**
+     * 设置行间距
+     * 在布局中定义子元素在行方向（垂直）的间距
+     * @param gap 行间距值
+     */
+    void setRowGap(const LayoutValue& gap);
+    
+    /**
+     * 设置所有方向的间距
+     * 在布局中定义子元素在所有方向的间距
+     * @param gap 间距值
+     */
+    void setGapAll(const LayoutValue& gap);
+    
+    // --- Box Sizing 属性 ---
+    /**
+     * 设置盒子尺寸计算方式
+     * 在布局中定义width和height是否包含padding和border
+     * @param boxSizing 计算方式：BORDER_BOX(包含边框和内边距)、CONTENT_BOX(仅内容区域)
+     */
+    void setBoxSizing(BoxSizing boxSizing);
     
     FlexWrap getFlexWrap() const;
     Overflow getOverflow() const;
     Display getDisplay() const;
     float getAspectRatio() const;
     Direction getDirection() const;
+    
+    // --- Gap 属性获取 ---
+    LayoutValue getGap(Gutter gutter) const;
+    LayoutValue getColumnGap() const;
+    LayoutValue getRowGap() const;
+    LayoutValue getGapAll() const;
+    
+    // --- Box Sizing 属性获取 ---
+    BoxSizing getBoxSizing() const;
     
     // ====================================================================
     // 布局计算和查询

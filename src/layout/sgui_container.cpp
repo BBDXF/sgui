@@ -393,6 +393,72 @@ void SContainer::setDirection(Direction direction) {
     YGNodeStyleSetDirection(m_yogaNode, static_cast<YGDirection>(static_cast<int>(direction)));
 }
 
+// ====================================================================
+// Gap 属性实现
+// ====================================================================
+
+void SContainer::setGap(Gutter gutter, const LayoutValue& gap) {
+    YGGutter ygGutter = static_cast<YGGutter>(static_cast<int>(gutter));
+    
+    if (gap.isPercent) {
+        YGNodeStyleSetGapPercent(m_yogaNode, ygGutter, gap.value);
+    } else {
+        YGNodeStyleSetGap(m_yogaNode, ygGutter, gap.value);
+    }
+    markDirty();
+}
+
+void SContainer::setColumnGap(const LayoutValue& gap) {
+    setGap(Gutter::Column, gap);
+}
+
+void SContainer::setRowGap(const LayoutValue& gap) {
+    setGap(Gutter::Row, gap);
+}
+
+void SContainer::setGapAll(const LayoutValue& gap) {
+    setGap(Gutter::All, gap);
+}
+
+// ====================================================================
+// Box Sizing 属性实现
+// ====================================================================
+
+void SContainer::setBoxSizing(BoxSizing boxSizing) {
+    YGNodeStyleSetBoxSizing(m_yogaNode, static_cast<YGBoxSizing>(static_cast<int>(boxSizing)));
+    markDirty();
+}
+
+// ====================================================================
+// Gap 属性获取实现
+// ====================================================================
+
+LayoutValue SContainer::getGap(Gutter gutter) const {
+    YGGutter ygGutter = static_cast<YGGutter>(static_cast<int>(gutter));
+    YGValue ygValue = YGNodeStyleGetGap(m_yogaNode, ygGutter);
+    return fromYGValue(ygValue);
+}
+
+LayoutValue SContainer::getColumnGap() const {
+    return getGap(Gutter::Column);
+}
+
+LayoutValue SContainer::getRowGap() const {
+    return getGap(Gutter::Row);
+}
+
+LayoutValue SContainer::getGapAll() const {
+    return getGap(Gutter::All);
+}
+
+// ====================================================================
+// Box Sizing 属性获取实现
+// ====================================================================
+
+BoxSizing SContainer::getBoxSizing() const {
+    return static_cast<sgui::BoxSizing>(YGNodeStyleGetBoxSizing(m_yogaNode));
+}
+
 FlexWrap SContainer::getFlexWrap() const {
     return static_cast<sgui::FlexWrap>(YGNodeStyleGetFlexWrap(m_yogaNode));
 }
