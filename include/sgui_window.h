@@ -10,7 +10,7 @@
 // 前向声明
 namespace sgui {
     class SCairoRenderer;
-    class SContainerEx;
+    class SContainer;
     class SWindowManager;
 }
 
@@ -76,13 +76,13 @@ public:
      * @brief 设置根容器
      * @param root 根容器指针
      */
-    void SetRootContainer(std::shared_ptr<sgui::SContainerEx> root);
+    void SetRootContainer(std::shared_ptr<sgui::SContainer> root);
     
     /**
      * @brief 获取根容器
      * @return 根容器指针
      */
-    std::shared_ptr<sgui::SContainerEx> GetRootContainer() const;
+    std::shared_ptr<sgui::SContainer> GetRootContainer() const;
 
     // 禁止复制和赋值
     SWindow(const SWindow&) = delete;
@@ -95,7 +95,7 @@ private:
     SWindowManager* manager_;
     GLFWwindow* window_; // GLFWwindow指针
     std::unique_ptr<sgui::SCairoRenderer> cairoRenderer_; // 简化的Cairo渲染器
-    std::shared_ptr<sgui::SContainerEx> rootContainer_; // 根容器
+    std::shared_ptr<sgui::SContainer> rootContainer_; // 根容器
 
     /**
      * @brief 获取平台特定的窗口ID

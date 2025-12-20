@@ -1,23 +1,13 @@
 /**
- * SContainer.h - GUI容器的基类
+ * GUI容器基类
  * 
- * 基于Yoga Flexbox布局引擎的GUI容器基类，提供完整的布局功能
- * 所有GUI组件都应该继承自这个基类
+ * 继承自SLayout，添加背景、边框和文本样式等功能
  */
 
 #pragma once
 
-#include <yoga/YGNode.h>
-#include <yoga/YGNodeStyle.h>
-#include <yoga/YGNodeLayout.h>
-#include <yoga/YGEnums.h>
-#include <yoga/YGValue.h>
+#include "sgui_layout.h"
 #include <string>
-#include <vector>
-#include <memory>
-#include <functional>
-#include "sgui_common.h"
-#include <cairo/cairo.h>
 
 namespace sgui {
 
@@ -26,519 +16,214 @@ class SContainer;
 
 // 智能指针类型定义
 using SContainerPtr = std::shared_ptr<SContainer>;
-using SContainerWeakPtr = std::weak_ptr<SContainer>;
 
 /**
- * Container基类 - 所有GUI组件的基础
+ * ContainerEx类 - 扩展的容器，支持样式属性
  */
-class SContainer : public std::enable_shared_from_this<SContainer> {
-public:
-
+class SContainer : public SLayout {
 public:
     SContainer();
-    virtual ~SContainer();
-    
-    // 禁用拷贝构造和赋值
-    SContainer(const SContainer&) = delete;
-    SContainer& operator=(const SContainer&) = delete;
+    ~SContainer() override = default;
     
     // ====================================================================
-    // 子节点管理
+    // 背景相关属性
     // ====================================================================
     
-    /**
-     * 添加子节点
-     */
-    void addChild(const SContainerPtr& child);
+    /** 设置背景色 */
+    void setBackgroundColor(const Color& color);
+    /** 获取背景色 */
+    Color getBackgroundColor() const { return m_backgroundColor; }
     
-    /**
-     * 在指定位置插入子节点
-     */
-    void insertChild(const SContainerPtr& child, size_t index);
+    /** 设置背景图片 */
+    void setBackgroundImage(const std::string& imagePath);
+    /** 获取背景图片路径 */
+    const std::string& getBackgroundImage() const { return m_backgroundImage; }
     
-    /**
-     * 移除子节点
-     */
-    void removeChild(const SContainerPtr& child);
+    /** 设置渐变背景 */
+    void setBackgroundGradient(const BackgroundGradient& gradient);
+    /** 获取渐变背景 */
+    const BackgroundGradient& getBackgroundGradient() const { return m_backgroundGradient; }
     
-    /**
-     * 移除所有子节点
-     */
-    void removeAllChildren();
-    
-    /**
-     * 获取子节点数量
-     */
-    size_t getChildCount() const;
-    
-    /**
-     * 获取指定索引的子节点
-     */
-    SContainerPtr getChildAt(size_t index) const;
-    
-    /**
-     * 获取父节点
-     */
-    SContainerPtr getParent() const { return m_parent.lock(); }
+    /** 清除背景 */
+    void clearBackground();
     
     // ====================================================================
-    // 布局属性设置
+    // 边框样式属性
     // ====================================================================
     
-    // --- 尺寸设置 ---
-    /**
-     * 设置容器的宽度
-     * 在布局中定义容器的水平尺寸，可以是固定值、百分比或自动
-     * @param width 宽度值，支持像素、百分比、自动等模式
-     */
-    void setWidth(const LayoutValue& width);
+    /** 设置边框颜色 */
+    void setBorderColor(const Color& color);
+    /** 获取边框颜色 */
+    Color getBorderColor() const { return m_borderColor; }
     
-    /**
-     * 设置容器的高度
-     * 在布局中定义容器的垂直尺寸，可以是固定值、百分比或自动
-     * @param height 高度值，支持像素、百分比、自动等模式
-     */
-    void setHeight(const LayoutValue& height);
+    /** 设置边框样式 */
+    void setBorderStyle(BorderStyle style);
+    /** 获取边框样式 */
+    BorderStyle getBorderStyle() const { return m_borderStyle; }
     
-    /**
-     * 设置容器的最小宽度
-     * 在布局中限制容器的最小水平尺寸，防止容器收缩到小于指定值
-     * @param minWidth 最小宽度值，支持像素、百分比等模式
-     */
-    void setMinWidth(const LayoutValue& minWidth);
+    /** 设置圆角半径 */
+    void setBorderRadius(const EdgeInsets& radius);
+    /** 获取圆角半径 */
+    const EdgeInsets& getBorderRadius() const { return m_borderRadius; }
     
-    /**
-     * 设置容器的最小高度
-     * 在布局中限制容器的最小垂直尺寸，防止容器收缩到小于指定值
-     * @param minHeight 最小高度值，支持像素、百分比等模式
-     */
-    void setMinHeight(const LayoutValue& minHeight);
+    /** 设置阴影 */
+    void setBoxShadow(const BoxShadow& shadow);
+    /** 获取阴影 */
+    const BoxShadow& getBoxShadow() const { return m_boxShadow; }
     
-    /**
-     * 设置容器的最大宽度
-     * 在布局中限制容器的最大水平尺寸，防止容器扩展超过指定值
-     * @param maxWidth 最大宽度值，支持像素、百分比等模式
-     */
-    void setMaxWidth(const LayoutValue& maxWidth);
-    
-    /**
-     * 设置容器的最大高度
-     * 在布局中限制容器的最大垂直尺寸，防止容器扩展超过指定值
-     * @param maxHeight 最大高度值，支持像素、百分比等模式
-     */
-    void setMaxHeight(const LayoutValue& maxHeight);
-    
-    LayoutValue getWidth() const;
-    LayoutValue getHeight() const;
-    LayoutValue getMinWidth() const;
-    LayoutValue getMinHeight() const;
-    LayoutValue getMaxWidth() const;
-    LayoutValue getMaxHeight() const;
-    
-    // --- Flex属性 ---
-    /**
-     * 设置Flex属性的简写
-     * 在布局中同时设置flex-grow、flex-shrink和flex-basis三个属性
-     * 控制容器在Flex容器中的伸缩行为和基础尺寸
-     * @param flex Flex值，影响容器的伸缩比例
-     */
-    void setFlex(float flex);
-    
-    /**
-     * 设置Flex增长系数
-     * 在布局中定义容器在Flex容器中的放大比例
-     * 当容器有剩余空间时，按此比例分配空间
-     * @param flexGrow 增长系数，默认为0，负值无效
-     */
-    void setFlexGrow(float flexGrow);
-    
-    /**
-     * 设置Flex收缩系数
-     * 在布局中定义容器在Flex容器中的缩小比例
-     * 当容器空间不足时，按此比例缩小容器
-     * @param flexShrink 收缩系数，默认为1，负值无效
-     */
-    void setFlexShrink(float flexShrink);
-    
-    /**
-     * 设置Flex基础尺寸
-     * 在布局中定义容器在分配剩余空间之前的基础尺寸
-     * 可以是固定值、百分比或auto
-     * @param flexBasis 基础尺寸值
-     */
-    void setFlexBasis(const LayoutValue& flexBasis);
-    
-    float getFlex() const;
-    float getFlexGrow() const;
-    float getFlexShrink() const;
-    LayoutValue getFlexBasis() const;
-    
-    // --- 布局方向和对齐 ---
-    /**
-     * 设置Flex方向
-     * 在布局中定义子元素的排列方向（水平或垂直）
-     * 控制主轴的方向，影响子元素的排列方式
-     * @param direction Flex方向：ROW(水平)、COLUMN(垂直)等
-     */
-    void setFlexDirection(FlexDirection direction);
-    
-    /**
-     * 设置主轴对齐方式
-     * 在布局中定义子元素在主轴上的对齐方式
-     * 控制子元素在主轴方向上的分布和间距
-     * @param justify 主轴对齐方式：FLEX_START、CENTER、FLEX_END、SPACE_BETWEEN等
-     */
-    void setJustifyContent(Align justify);
-    
-    /**
-     * 设置交叉轴对齐方式
-     * 在布局中定义子元素在交叉轴上的对齐方式
-     * 控制所有子元素在交叉轴方向上的对齐
-     * @param align 交叉轴对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH等
-     */
-    void setAlignItems(Align align);
-    
-    /**
-     * 设置单个容器的交叉轴对齐方式
-     * 在布局中覆盖父容器的align-items设置
-     * 只影响当前容器在交叉轴上的对齐方式
-     * @param align 交叉轴对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH、AUTO等
-     */
-    void setAlignSelf(Align align);
-    
-    /**
-     * 设置多行容器的交叉轴对齐方式
-     * 在布局中定义多行Flex容器中行的对齐方式
-     * 当flex-wrap为wrap时，控制多行在交叉轴上的分布
-     * @param align 多行对齐方式：FLEX_START、CENTER、FLEX_END、STRETCH、SPACE_BETWEEN等
-     */
-    void setAlignContent(Align align);
-    
-    FlexDirection getFlexDirection() const;
-    Align getJustifyContent() const;
-    Align getAlignItems() const;
-    Align getAlignSelf() const;
-    Align getAlignContent() const;
-    
-    // --- 位置和定位 ---
-    /**
-     * 设置定位类型
-     * 在布局中定义容器的定位方式（相对定位或绝对定位）
-     * 影响容器在父容器中的位置计算方式
-     * @param positionType 定位类型：RELATIVE(相对)、ABSOLUTE(绝对)
-     */
-    void setPosition(PositionType positionType);
-    
-    /**
-     * 设置容器的位置偏移
-     * 在布局中定义容器相对于父容器的位置偏移量
-     * 支持上、右、下、左四个方向的独立设置
-     * @param position 位置偏移值，包含top、right、bottom、left四个方向
-     */
-    void setPosition(EdgeInsets position);
-    
-    PositionType getPositionType() const;
-    EdgeInsets getPosition() const;
-    
-    // --- 边距和内边距 ---
-    /**
-     * 设置外边距
-     * 在布局中定义容器与相邻元素之间的空间
-     * 影响容器与其他元素的距离和整体布局间距
-     * @param margin 外边距值，包含top、right、bottom、left四个方向
-     */
-    void setMargin(const EdgeInsets& margin);
-    
-    /**
-     * 设置内边距
-     * 在布局中定义容器内容与边框之间的空间
-     * 影响容器内部内容的显示区域和布局
-     * @param padding 内边距值，包含top、right、bottom、left四个方向
-     */
-    void setPadding(const EdgeInsets& padding);
-    
-    /**
-     * 设置边框宽度
-     * 在布局中定义容器边框的宽度
-     * 影响容器的总尺寸和内部内容的可用空间
-     * @param border 边框宽度值，包含top、right、bottom、left四个方向
-     */
-    void setBorder(const EdgeInsets& border);
-    
-    EdgeInsets getMargin() const;
-    EdgeInsets getPadding() const;
-    EdgeInsets getBorder() const;
-    
-    // --- 其他属性 ---
-    /**
-     * 设置Flex换行方式
-     * 在布局中定义子元素是否允许换行
-     * 控制当容器空间不足时子元素的排列方式
-     * @param wrap 换行方式：NOWRAP(不换行)、WRAP(换行)、WRAP_REVERSE(反向换行)
-     */
-    void setFlexWrap(FlexWrap wrap);
-    
-    /**
-     * 设置溢出处理方式
-     * 在布局中定义当内容超出容器尺寸时的处理方式
-     * 控制是否显示滚动条或裁剪超出内容
-     * @param overflow 溢出方式：VISIBLE(可见)、HIDDEN(隐藏)、SCROLL(滚动)
-     */
-    void setOverflow(Overflow overflow);
-    
-    /**
-     * 设置显示类型
-     * 在布局中定义容器的显示类型
-     * 控制容器是否参与布局计算和显示
-     * @param display 显示类型：FLEX(Flex布局)、NONE(不显示)
-     */
-    void setDisplay(Display display);
-    
-    /**
-     * 设置宽高比
-     * 在布局中定义容器的宽高比例
-     * 用于保持容器的特定比例，常用于图片和视频元素
-     * @param aspectRatio 宽高比例值，宽度/高度
-     */
-    void setAspectRatio(float aspectRatio);
-    
-    /**
-     * 设置文本方向
-     * 在布局中定义文本的书写方向
-     * 影响文本的排列方向和对齐方式
-     * @param direction 文本方向：INHERIT(继承)、LTR(从左到右)、RTL(从右到左)
-     */
-    void setDirection(Direction direction);
-    
-    // --- Gap 属性 ---
-    /**
-     * 设置间距
-     * 在布局中定义子元素之间的间距
-     * @param gutter 间距类型：COLUMN(列间距)、ROW(行间距)、ALL(所有间距)
-     * @param gap 间距值，支持像素、百分比等
-     */
-    void setGap(Gutter gutter, const LayoutValue& gap);
-    
-    /**
-     * 设置列间距
-     * 在布局中定义子元素在列方向（水平）的间距
-     * @param gap 列间距值
-     */
-    void setColumnGap(const LayoutValue& gap);
-    
-    /**
-     * 设置行间距
-     * 在布局中定义子元素在行方向（垂直）的间距
-     * @param gap 行间距值
-     */
-    void setRowGap(const LayoutValue& gap);
-    
-    /**
-     * 设置所有方向的间距
-     * 在布局中定义子元素在所有方向的间距
-     * @param gap 间距值
-     */
-    void setGapAll(const LayoutValue& gap);
-    
-    // --- Box Sizing 属性 ---
-    /**
-     * 设置盒子尺寸计算方式
-     * 在布局中定义width和height是否包含padding和border
-     * @param boxSizing 计算方式：BORDER_BOX(包含边框和内边距)、CONTENT_BOX(仅内容区域)
-     */
-    void setBoxSizing(BoxSizing boxSizing);
-    
-    FlexWrap getFlexWrap() const;
-    Overflow getOverflow() const;
-    Display getDisplay() const;
-    float getAspectRatio() const;
-    Direction getDirection() const;
-    
-    // --- Gap 属性获取 ---
-    LayoutValue getGap(Gutter gutter) const;
-    LayoutValue getColumnGap() const;
-    LayoutValue getRowGap() const;
-    LayoutValue getGapAll() const;
-    
-    // --- Box Sizing 属性获取 ---
-    BoxSizing getBoxSizing() const;
+    /** 清除边框样式 */
+    void clearBorderStyle();
     
     // ====================================================================
-    // 布局计算和查询
+    // 文本样式属性
     // ====================================================================
     
-    /**
-     * 计算布局
-     * @param width 可用宽度，YGUndefined表示自动
-     * @param height 可用高度，YGUndefined表示自动
-     */
-    void calculateLayout(float width = YGUndefined, float height = YGUndefined);
+    /** 设置文本颜色 */
+    void setColor(const Color& color);
+    /** 获取文本颜色 */
+    Color getColor() const { return m_textColor; }
     
-    /**
-     * 获取计算后的布局位置
-     */
-    float getLeft() const;
-    float getTop() const;
-    float getRight() const;
-    float getBottom() const;
+    /** 设置字体大小 */
+    void setFontSize(float size);
+    /** 获取字体大小 */
+    float getFontSize() const { return m_fontSize; }
     
-    /**
-     * 获取计算后的布局尺寸
-     */
-    float getLayoutWidth() const;
-    float getLayoutHeight() const;
+    /** 设置字体族 */
+    void setFontFamily(const std::string& family);
+    /** 获取字体族 */
+    const std::string& getFontFamily() const { return m_fontFamily; }
     
-    /**
-     * 获取计算后的边距
-     */
-    float getLayoutMarginLeft() const;
-    float getLayoutMarginTop() const;
-    float getLayoutMarginRight() const;
-    float getLayoutMarginBottom() const;
+    /** 设置字体粗细 */
+    void setFontWeight(FontWeight weight);
+    /** 获取字体粗细 */
+    FontWeight getFontWeight() const { return m_fontWeight; }
     
-    /**
-     * 获取计算后的内边距
-     */
-    float getLayoutPaddingLeft() const;
-    float getLayoutPaddingTop() const;
-    float getLayoutPaddingRight() const;
-    float getLayoutPaddingBottom() const;
+    /** 设置字体样式 */
+    void setFontStyle(FontStyle style);
+    /** 获取字体样式 */
+    FontStyle getFontStyle() const { return m_fontStyle; }
     
-    /**
-     * 获取计算后的边框
-     */
-    float getLayoutBorderLeft() const;
-    float getLayoutBorderTop() const;
-    float getLayoutBorderRight() const;
-    float getLayoutBorderBottom() const;
+    /** 设置文本对齐 */
+    void setTextAlign(TextAlign align);
+    /** 获取文本对齐 */
+    TextAlign getTextAlign() const { return m_textAlign; }
     
-    /**
-     * 检查布局是否需要重新计算
-     */
-    bool isDirty() const;
+    /** 设置文本装饰 */
+    void setTextDecoration(TextDecoration decoration);
+    /** 获取文本装饰 */
+    TextDecoration getTextDecoration() const { return m_textDecoration; }
     
-    /**
-     * 标记需要重新计算布局
-     */
-    void markDirty();
-
-    /**
-     * 清除dirty标记
-     */
-    void clearDirty();
+    /** 设置文本溢出处理 */
+    void setTextOverflow(TextOverflow overflow);
+    /** 获取文本溢出处理 */
+    TextOverflow getTextOverflow() const { return m_textOverflow; }
+    
+    /** 设置行高 */
+    void setLineHeight(float height);
+    /** 获取行高 */
+    float getLineHeight() const { return m_lineHeight; }
+    
+    /** 设置文本缩进 */
+    void setTextIndent(float indent);
+    /** 获取文本缩进 */
+    float getTextIndent() const { return m_textIndent; }
+    
+    /** 设置文本内容 */
+    void setText(const std::string& text);
+    /** 获取文本内容 */
+    const std::string& getText() const { return m_text; }
+    
+    /** 清除文本样式 */
+    void clearTextStyle();
     
     // ====================================================================
-    // 虚函数接口
+    // 重写基类函数
     // ====================================================================
     
-    /**
-     * Cairo渲染函数 - 子类可以重写以实现自定义绘制
-     * @param cr Cairo绘制上下文
-     */
-    virtual void render(cairo_t* cr) {
-        // 避免未使用参数警告
-        (void)cr;
-    }
+    /** 重写绘制函数 */
+    void render(cairo_t* cr) override;
     
-    /**
-     * 自定义测量函数 - 用于文本等需要测量的内容
-     */
-    virtual void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) {
-        // 避免未使用参数警告
-        (void)width;
-        (void)height;
-        (void)measuredWidth;
-        (void)measuredHeight;
-    }
-    
-    /**
-     * 布局变化回调
-     */
-    virtual void onLayoutChanged() {}
-    
-    /**
-     * 渲染容器及其所有子节点
-     * @param cr Cairo绘制上下文
-     */
-    void renderTree(cairo_t* cr);
+    /** 重写测量函数 */
+    void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) override;
     
     // ====================================================================
-    // 工具函数
+    // 样式管理
     // ====================================================================
     
-    /**
-     * 打印布局树（调试用）
-     */
-    void printLayoutTree(int depth = 0) const;
+    /** 应用所有样式（批量更新） */
+    void applyStyles();
     
-    /**
-     * 获取Yoga节点（高级用法）
-     */
-    YGNodeRef getYogaNode() const { return m_yogaNode; }
+    /** 重置所有样式到默认值 */
+    void resetStyles();
     
-    /**
-     * 设置用户数据
-     */
-    void setUserData(void* userData) { m_userData = userData; }
+    /** 检查是否有背景 */
+    bool hasBackground() const;
     
-    /**
-     * 获取用户数据
-     */
-    void* getUserData() const { return m_userData; }
-
-protected:
-    /**
-     * 子类可以访问的Yoga节点
-     */
-    YGNodeRef m_yogaNode;
+    /** 检查是否有边框样式 */
+    bool hasBorderStyle() const;
     
-    /**
-     * 子节点列表
-     */
-    std::vector<SContainerPtr> m_children;
-    
-    /**
-     * 父节点弱引用
-     */
-    SContainerWeakPtr m_parent;
-    
-    /**
-     * 用户数据指针
-     */
-    void* m_userData = nullptr;
-
-    /**
-     * Dirty 标记
-     */
-    bool m_dirty = true;
+    /** 检查是否有文本样式 */
+    bool hasTextStyle() const;
 
 private:
-    /**
-     * 将LayoutValue转换为YGValue
-     */
-    YGValue toYGValue(const LayoutValue& value) const;
+    // ====================================================================
+    // 背景相关成员变量
+    // ====================================================================
+    Color m_backgroundColor;
+    std::string m_backgroundImage;
+    BackgroundGradient m_backgroundGradient;
+    bool m_hasBackgroundImage = false;        // 保留：检查图片路径是否为空
+    bool m_hasBackgroundGradient = false;     // 保留：检查渐变是否有停止点
     
-    /**
-     * 将YGValue转换为LayoutValue
-     */
-    LayoutValue fromYGValue(const YGValue& value) const;
+    // ====================================================================
+    // 边框样式成员变量
+    // ====================================================================
+    Color m_borderColor;
+    BorderStyle m_borderStyle = BorderStyle::Solid;
+    EdgeInsets m_borderRadius;
+    BoxShadow m_boxShadow;
     
-    /**
-     * 设置边距/内边距/边框的辅助函数
-     */
-    void setEdgeValues(void (*setter)(YGNodeRef, YGEdge, float), 
-                      void (*setterPercent)(YGNodeRef, YGEdge, float),
-                      const EdgeInsets& edge);
+    // ====================================================================
+    // 文本样式成员变量
+    // ====================================================================
+    Color m_textColor;
+    float m_fontSize = 14.0f;
+    std::string m_fontFamily = SGUI_DEFAULT_FONT_FAMILY;
+    FontWeight m_fontWeight = FontWeight::Normal;
+    FontStyle m_fontStyle = FontStyle::Normal;
+    TextAlign m_textAlign = TextAlign::Left;
+    TextDecoration m_textDecoration = TextDecoration::None;
+    TextOverflow m_textOverflow = TextOverflow::Clip;
+    float m_lineHeight = 1.2f;
+    float m_textIndent = 0.0f;
+    std::string m_text;
+    bool m_hasTextContent = false;            // 保留：检查文本是否为空
     
-    /**
-     * 获取边距/内边距/边框的辅助函数
-     */
-    EdgeInsets getEdgeValues(float (*getter)(YGNodeConstRef, YGEdge)) const;
+    // ====================================================================
+    // 私有辅助函数
+    // ====================================================================
     
-    /**
-     * 位置设置辅助函数
-     */
-    void setPositionValues(const EdgeInsets& position);
+    /** 测量文本尺寸 */
+    void measureText(float& width, float& height);
+    
+    /** 标记样式已更改 */
+    void markStylesDirty();
+    
+    // ====================================================================
+    // Cairo绘制相关私有辅助函数
+    // ====================================================================
+    
+    /** 使用Cairo绘制背景 */
+    void drawBackgroundCairo(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 使用Cairo绘制边框 */
+    void drawBorderCairo(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 使用Cairo绘制文本 */
+    void drawTextCairo(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 样式更改标记 */
+    bool m_stylesDirty = true;
 };
 
 } // namespace sgui

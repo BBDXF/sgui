@@ -12,8 +12,6 @@ add_executable(multi_win
     glfw_hello/multi_win.cpp
 )
 
-add_subdirectory(color_test)
-
 # Yoga layout demo
 add_subdirectory(yoga_demo)
 

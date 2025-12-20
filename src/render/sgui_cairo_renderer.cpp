@@ -1,6 +1,5 @@
 /**
- * SCairoRenderer.cpp - Cairo渲染器实现
- * 直接绑定window id进行surface绘制，支持双缓冲
+ * Cairo渲染器实现
  */
 
 #include "sgui_cairo_renderer.h"
@@ -54,147 +53,27 @@ void SCairoRenderer::begin() {
     cairo_identity_matrix(m_backCairo);
     
     // 清除后缓冲为白色背景
-    clear(Color(1.0, 1.0, 1.0));
+    cairo_save(m_backCairo);
+    cairo_set_source_rgba(m_backCairo, 1.0, 1.0, 1.0, 1.0);
+    cairo_fill(m_backCairo);
+    cairo_restore(m_backCairo);
 }
 
 void SCairoRenderer::end() {
-    if (!m_backSurface || !m_frontSurface) {
+    if (!m_backSurface || !m_frontCairo) {
         return;
     }
     
-    // 将后缓冲内容复制到前缓冲
-    swapBuffers();
+    // 将后缓冲内容绘制到前缓冲
+    cairo_save(m_frontCairo);
+    cairo_set_source_surface(m_frontCairo, m_backSurface, 0, 0);
+    cairo_paint(m_frontCairo);
+    cairo_restore(m_frontCairo);
     
     // 刷新前缓冲到窗口
     cairo_surface_flush(m_frontSurface);
 }
 
-void SCairoRenderer::setClipRect(const Rect& rect) {
-    if (!m_backCairo) return;
-    
-    cairo_rectangle(m_backCairo, rect.x, rect.y, rect.width, rect.height);
-    cairo_clip(m_backCairo);
-}
-
-void SCairoRenderer::clearClip() {
-    if (!m_backCairo) return;
-    cairo_reset_clip(m_backCairo);
-}
-
-void SCairoRenderer::drawRect(const Rect& rect, const Color& color) {
-    if (!m_backCairo) return;
-    
-    cairo_save(m_backCairo);
-    cairo_set_source_rgba(m_backCairo, color.r, color.g, color.b, color.a);
-    cairo_rectangle(m_backCairo, rect.x, rect.y, rect.width, rect.height);
-    cairo_fill(m_backCairo);
-    cairo_restore(m_backCairo);
-}
-
-void SCairoRenderer::drawRoundedRect(const Rect& rect, double radius, const Color& color) {
-    if (!m_backCairo) return;
-    
-    cairo_save(m_backCairo);
-    cairo_set_source_rgba(m_backCairo, color.r, color.g, color.b, color.a);
-    
-    // 计算圆角矩形的路径
-    double x = rect.x;
-    double y = rect.y;
-    double width = rect.width;
-    double height = rect.height;
-    double r = std::min(radius, std::min(width, height) / 2.0);
-    
-    cairo_move_to(m_backCairo, x + r, y);
-    cairo_line_to(m_backCairo, x + width - r, y);
-    cairo_arc(m_backCairo, x + width - r, y + r, r, -M_PI/2, 0);
-    cairo_line_to(m_backCairo, x + width, y + height - r);
-    cairo_arc(m_backCairo, x + width - r, y + height - r, r, 0, M_PI/2);
-    cairo_line_to(m_backCairo, x + r, y + height);
-    cairo_arc(m_backCairo, x + r, y + height - r, r, M_PI/2, M_PI);
-    cairo_line_to(m_backCairo, x, y + r);
-    cairo_arc(m_backCairo, x + r, y + r, r, M_PI, -M_PI/2);
-    cairo_close_path(m_backCairo);
-    
-    cairo_fill(m_backCairo);
-    cairo_restore(m_backCairo);
-}
-
-void SCairoRenderer::drawBorder(const Rect& rect, const Color& color, double lineWidth) {
-    if (!m_backCairo) return;
-    
-    cairo_save(m_backCairo);
-    cairo_set_source_rgba(m_backCairo, color.r, color.g, color.b, color.a);
-    cairo_set_line_width(m_backCairo, lineWidth);
-    cairo_rectangle(m_backCairo, rect.x + lineWidth/2, rect.y + lineWidth/2, 
-                    rect.width - lineWidth, rect.height - lineWidth);
-    cairo_stroke(m_backCairo);
-    cairo_restore(m_backCairo);
-}
-
-void SCairoRenderer::drawText(const std::string& text, double x, double y, 
-                                   const Color& color, double fontSize,
-                                   const std::string& fontFamily) {
-    if (!m_backCairo || text.empty()) return;
-    
-    cairo_save(m_backCairo);
-    
-    // 设置字体
-    cairo_select_font_face(m_backCairo, fontFamily.c_str(), 
-                           CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(m_backCairo, fontSize);
-    
-    // 设置文本颜色
-    cairo_set_source_rgba(m_backCairo, color.r, color.g, color.b, color.a);
-    
-    // 移动到指定位置并绘制文本
-    cairo_move_to(m_backCairo, x, y);
-    cairo_show_text(m_backCairo, text.c_str());
-    
-    cairo_restore(m_backCairo);
-}
-
-void SCairoRenderer::drawImage(const std::string& imagePath, const Rect& rect) {
-    if (!m_backCairo) return;
-    
-    // 加载图片到Cairo表面
-    cairo_surface_t* imageSurface = cairo_image_surface_create_from_png(imagePath.c_str());
-    if (!imageSurface || cairo_surface_status(imageSurface) != CAIRO_STATUS_SUCCESS) {
-        std::cerr << "Failed to load image: " << imagePath << std::endl;
-        if (imageSurface) {
-            cairo_surface_destroy(imageSurface);
-        }
-        return;
-    }
-    
-    cairo_save(m_backCairo);
-    
-    // 计算缩放比例以适应目标矩形
-    double imageWidth = cairo_image_surface_get_width(imageSurface);
-    double imageHeight = cairo_image_surface_get_height(imageSurface);
-    double scaleX = rect.width / imageWidth;
-    double scaleY = rect.height / imageHeight;
-    
-    // 应用变换
-    cairo_translate(m_backCairo, rect.x, rect.y);
-    cairo_scale(m_backCairo, scaleX, scaleY);
-    
-    // 绘制图片
-    cairo_set_source_surface(m_backCairo, imageSurface, 0, 0);
-    cairo_paint(m_backCairo);
-    
-    cairo_restore(m_backCairo);
-    cairo_surface_destroy(imageSurface);
-}
-
-void SCairoRenderer::clear(const Color& color) {
-    if (!m_backCairo) return;
-    
-    cairo_save(m_backCairo);
-    cairo_set_source_rgba(m_backCairo, color.r, color.g, color.b, color.a);
-    cairo_rectangle(m_backCairo, 0, 0, m_width, m_height);
-    cairo_fill(m_backCairo);
-    cairo_restore(m_backCairo);
-}
 
 void SCairoRenderer::initCairoSurface() {
     // 1. 创建前缓冲（直接绑定到窗口）
@@ -289,16 +168,5 @@ void SCairoRenderer::cleanupCairoSurface() {
     }
 }
 
-void SCairoRenderer::swapBuffers() {
-    if (!m_backSurface || !m_frontCairo) {
-        return;
-    }
-    
-    // 将后缓冲内容绘制到前缓冲
-    cairo_save(m_frontCairo);
-    cairo_set_source_surface(m_frontCairo, m_backSurface, 0, 0);
-    cairo_paint(m_frontCairo);
-    cairo_restore(m_frontCairo);
-}
 
 } // namespace sgui

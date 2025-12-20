@@ -2,7 +2,7 @@
  * ContainerEx Demo - 演示扩展容器的样式功能
  */
 
-#include "sgui_containerex.h"
+#include "sgui_container.h"
 #include <iostream>
 #include <memory>
 
@@ -11,7 +11,7 @@ using namespace sgui;
 void demonstrateBackgroundFeatures() {
     std::cout << "=== 背景功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<SContainerEx>();
+    auto container = std::make_shared<SContainer>();
     container->setWidth(300);
     container->setHeight(200);
     
@@ -48,7 +48,7 @@ void demonstrateBackgroundFeatures() {
 void demonstrateBorderFeatures() {
     std::cout << "=== 边框功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<SContainerEx>();
+    auto container = std::make_shared<SContainer>();
     container->setWidth(300);
     container->setHeight(200);
     
@@ -84,7 +84,7 @@ void demonstrateBorderFeatures() {
 void demonstrateTextFeatures() {
     std::cout << "=== 文本功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<SContainerEx>();
+    auto container = std::make_shared<SContainer>();
     container->setWidth(400);
     container->setHeight(150);
     container->setPadding(EdgeInsets::All(20));
@@ -137,7 +137,7 @@ void demonstrateTextFeatures() {
 void demonstrateCombinedFeatures() {
     std::cout << "=== 综合功能演示 ===" << std::endl;
     
-    auto container = std::make_shared<SContainerEx>();
+    auto container = std::make_shared<SContainer>();
     container->setWidth(400);
     container->setHeight(250);
     container->setPadding(EdgeInsets::All(20));
@@ -175,7 +175,7 @@ void demonstrateCombinedFeatures() {
 void demonstrateStyleManagement() {
     std::cout << "=== 样式管理演示 ===" << std::endl;
     
-    auto container = std::make_shared<SContainerEx>();
+    auto container = std::make_shared<SContainer>();
     container->setWidth(300);
     container->setHeight(100);
     

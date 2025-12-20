@@ -4,7 +4,7 @@
 
 #include "sgui_window.h"
 #include "sgui_cairo_renderer.h"
-#include "sgui_containerex.h"
+#include "sgui_container.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <iostream>
@@ -127,13 +127,13 @@ const char *SWindow::GetTitle() const
     return title_;
 }
 
-void SWindow::SetRootContainer(std::shared_ptr<sgui::SContainerEx> root)
+void SWindow::SetRootContainer(std::shared_ptr<sgui::SContainer> root)
 {
     rootContainer_ = root;
     rootContainer_->markDirty();
 }
 
-std::shared_ptr<sgui::SContainerEx> SWindow::GetRootContainer() const
+std::shared_ptr<sgui::SContainer> SWindow::GetRootContainer() const
 {
     return rootContainer_;
 }
