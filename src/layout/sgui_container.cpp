@@ -169,7 +169,7 @@ void SContainer::setText(const std::string &text)
 
 void SContainer::clearTextStyle()
 {
-    m_textColor = Color(0, 0, 0, 1);       // 默认黑色文本
+    m_textColor = Color(0, 0, 0, 1); // 默认黑色文本
     m_fontSize = 14.0f;
     m_fontFamily = SGUI_DEFAULT_FONT_FAMILY;
     m_fontWeight = FontWeight::Normal;
@@ -309,12 +309,9 @@ bool SContainer::hasBackground() const
 
 bool SContainer::hasBorderStyle() const
 {
-    return (m_borderColor.a > 0) || 
-           (m_borderStyle != BorderStyle::Solid) ||
-           (m_borderRadius.left.value > 0 || m_borderRadius.top.value > 0 || 
-            m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0) ||
-           (m_boxShadow.blurRadius > 0 || m_boxShadow.spreadRadius > 0 || 
-            m_boxShadow.offsetX != 0 || m_boxShadow.offsetY != 0 || m_boxShadow.color.a > 0);
+    return (m_borderColor.a > 0) || (m_borderStyle != BorderStyle::Solid) ||
+           (m_borderRadius.left.value > 0 || m_borderRadius.top.value > 0 || m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0) ||
+           (m_boxShadow.blurRadius > 0 || m_boxShadow.spreadRadius > 0 || m_boxShadow.offsetX != 0 || m_boxShadow.offsetY != 0 || m_boxShadow.color.a > 0);
 }
 
 bool SContainer::hasTextStyle() const
@@ -409,37 +406,37 @@ void SContainer::createComplexRoundedRectanglePath(cairo_t *cr, float x, float y
 
     // 参考 drawBorderCairo 的实现方式，从左上角开始
     cairo_move_to(cr, x + radiusTL, y);
-    
+
     // 上边线到右上角圆弧的起点
     cairo_line_to(cr, x + width - radiusTR, y);
-    
+
     // 右上角圆弧
     if (radiusTR > 0)
     {
         cairo_arc(cr, x + width - radiusTR, y + radiusTR, radiusTR, -M_PI / 2, 0);
     }
-    
+
     // 右边线到右下角圆弧的起点
     cairo_line_to(cr, x + width, y + height - radiusBR);
-    
+
     // 右下角圆弧
     if (radiusBR > 0)
     {
         cairo_arc(cr, x + width - radiusBR, y + height - radiusBR, radiusBR, 0, M_PI / 2);
     }
-    
+
     // 下边线到左下角圆弧的起点
     cairo_line_to(cr, x + radiusBL, y + height);
-    
+
     // 左下角圆弧
     if (radiusBL > 0)
     {
         cairo_arc(cr, x + radiusBL, y + height - radiusBL, radiusBL, M_PI / 2, M_PI);
     }
-    
+
     // 左边线到左上角圆弧的起点
     cairo_line_to(cr, x, y + radiusTL);
-    
+
     // 左上角圆弧
     if (radiusTL > 0)
     {
@@ -514,8 +511,7 @@ void SContainer::cleanupBackgroundSource()
 // 检查是否有圆角
 bool SContainer::hasBorderRadius() const
 {
-    return (m_borderRadius.left.value > 0 || m_borderRadius.top.value > 0 || 
-            m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0);
+    return (m_borderRadius.left.value > 0 || m_borderRadius.top.value > 0 || m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0);
 }
 
 void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width, float height)
@@ -574,6 +570,17 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
     if (borderRectWidth <= 0 || borderRectHeight <= 0)
         return;
 
+    // 获取边框宽度
+    float borderLeft = getLayoutBorderLeft();
+    float borderTop = getLayoutBorderTop();
+    float borderRight = getLayoutBorderRight();
+    float borderBottom = getLayoutBorderBottom();
+
+    if (borderLeft == 0.0 && borderTop == 0.0 && borderRight == 0.0 && borderBottom == 0.0)
+    {
+        return;
+    }
+
     // 设置边框颜色
     if (m_borderColor.a > 0)
     {
@@ -584,20 +591,8 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
         cairo_set_source_rgba(cr, 0, 0, 0, 1); // 默认黑色
     }
 
-    // 设置边框线宽
-    float borderLineWidth = getLayoutBorderLeft(); // 使用左边框宽度（简化）
-    if (borderLineWidth <= 0) borderLineWidth = 2.0; // 默认线宽2像素
-    cairo_set_line_width(cr, borderLineWidth);
-
-    // 调整边框绘制区域，确保边框不会超出容器边界
-    float halfBorder = borderLineWidth / 2.0f;
-    float adjustedX = borderX + halfBorder;
-    float adjustedY = borderY + halfBorder;
-    float adjustedWidth = borderRectWidth - borderLineWidth;
-    float adjustedHeight = borderRectHeight - borderLineWidth;
-
-    if (adjustedWidth <= 0 || adjustedHeight <= 0)
-        return;
+    // 线条末端形态
+    cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
 
     // 设置边框样式
     if (m_borderStyle != BorderStyle::Solid)
@@ -605,7 +600,7 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
         // 使用静态数组避免内存泄漏
         static double dashed_pattern[2] = {5.0, 5.0};
         static double dotted_pattern[2] = {2.0, 2.0};
-        
+
         switch (m_borderStyle)
         {
         case BorderStyle::Dashed:
@@ -620,18 +615,22 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
         }
     }
 
-    // 获取边框宽度
-    float borderLeft = getLayoutBorderLeft();
-    float borderTop = getLayoutBorderTop();
-    float borderRight = getLayoutBorderRight();
-    float borderBottom = getLayoutBorderBottom();
-
     // 检查是否所有边框宽度相同
     bool uniformBorder = (borderLeft == borderTop && borderTop == borderRight && borderRight == borderBottom);
 
     if (uniformBorder)
     {
         // 所有边框宽度相同，使用原有逻辑
+        // 调整边框绘制区域，确保边框不会超出容器边界
+        float halfBorder = borderLeft / 2.0f;
+        float adjustedX = borderX + halfBorder;
+        float adjustedY = borderY + halfBorder;
+        float adjustedWidth = borderRectWidth - borderLeft;
+        float adjustedHeight = borderRectHeight - borderLeft;
+
+        if (adjustedWidth <= 0 || adjustedHeight <= 0)
+            return;
+        cairo_set_line_width(cr, borderLeft);
         // 绘制边框 - 使用统一的圆角路径
         if (hasBorderRadius())
         {
@@ -645,41 +644,63 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
     }
     else
     {
-        // 边框宽度不同，使用fill rule绘制边框区域
-        // 保存当前路径状态
-        cairo_new_path(cr);
+        // 边框宽度不同，使用stroke绘制四条边，支持圆角
+        float radiusTL = m_borderRadius.top.value;
+        float radiusTR = m_borderRadius.right.value;
+        float radiusBR = m_borderRadius.bottom.value;
+        float radiusBL = m_borderRadius.left.value;
 
-        // 创建外部路径（边框外边界）
-        if (hasBorderRadius())
+        // 上边
+        if (borderTop > 0)
         {
-            createComplexRoundedRectanglePath(cr, borderX, borderY, borderRectWidth, borderRectHeight);
-        }
-        else
-        {
-            cairo_rectangle(cr, borderX, borderY, borderRectWidth, borderRectHeight);
-        }
-
-        // 创建内部路径（边框内边界）
-        float innerX = borderX + borderLeft;
-        float innerY = borderY + borderTop;
-        float innerWidth = borderRectWidth - borderLeft - borderRight;
-        float innerHeight = borderRectHeight - borderTop - borderBottom;
-
-        if (innerWidth > 0 && innerHeight > 0)
-        {
-            if (hasBorderRadius())
+            cairo_set_line_width(cr, borderTop);
+            cairo_move_to(cr, borderX + radiusTL, borderY + borderTop / 2);
+            cairo_line_to(cr, borderX + borderRectWidth - radiusTR, borderY + borderTop / 2);
+            if (radiusTR > 0)
             {
-                createComplexRoundedRectanglePath(cr, innerX, innerY, innerWidth, innerHeight);
+                // cairo_arc(cr, borderX + borderRectWidth - radiusTR, borderY + radiusTR, radiusTR, -M_PI / 2, 0);
             }
-            else
-            {
-                cairo_rectangle(cr, innerX, innerY, innerWidth, innerHeight);
-            }
+            cairo_stroke(cr);
         }
 
-        // 使用EVEN_ODD规则填充边框区域
-        cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
-        cairo_fill(cr);
+        // 右边
+        if (borderRight > 0)
+        {
+            cairo_set_line_width(cr, borderRight);
+            cairo_move_to(cr, borderX + borderRectWidth - borderRight / 2, borderY + radiusTR);
+            cairo_line_to(cr, borderX + borderRectWidth - borderRight / 2, borderY + borderRectHeight - radiusBR);
+            if (radiusBR > 0)
+            {
+                // cairo_arc(cr, borderX + borderRectWidth - radiusBR, borderY + borderRectHeight - radiusBR, radiusBR, 0, M_PI / 2);
+            }
+            cairo_stroke(cr);
+        }
+
+        // 下边
+        if (borderBottom > 0)
+        {
+            cairo_set_line_width(cr, borderBottom);
+            cairo_move_to(cr, borderX + borderRectWidth - radiusBR, borderY + borderRectHeight - borderBottom / 2);
+            cairo_line_to(cr, borderX + radiusBL, borderY + borderRectHeight - borderBottom / 2);
+            if (radiusBL > 0)
+            {
+                // cairo_arc(cr, borderX + radiusBL, borderY + borderRectHeight - radiusBL, radiusBL, M_PI / 2, M_PI);
+            }
+            cairo_stroke(cr);
+        }
+
+        // 左边
+        if (borderLeft > 0)
+        {
+            cairo_set_line_width(cr, borderLeft);
+            cairo_move_to(cr, borderX + borderLeft / 2, borderY + borderRectHeight - radiusBL);
+            cairo_line_to(cr, borderX + borderLeft / 2, borderY + radiusTL);
+            if (radiusTL > 0)
+            {
+                // cairo_arc(cr, borderX + radiusTL, borderY + radiusTL, radiusTL, M_PI, -M_PI / 2);
+            }
+            cairo_stroke(cr);
+        }
     }
 
     // 重置虚线设置

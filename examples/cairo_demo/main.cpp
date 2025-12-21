@@ -55,6 +55,7 @@ int main() {
         contentContainer->setText("Body");
         contentContainer->setDisplay(Display::Flex);
         contentContainer->setGap(Gutter::All, LayoutValue::Point(10));
+        contentContainer->setBorder(EdgeInsets::All(1.0));
         
         // 创建三个彩色方块
         auto redBox = std::make_shared<SContainer>();
@@ -81,7 +82,6 @@ int main() {
         bottomContainer->setFlexDirection(FlexDirection::Row);
         bottomContainer->setBackgroundColor(Color(0xFF, 0x10, 0x1F));
         bottomContainer->setText("bottom");
-        bottomContainer->setBorder(EdgeInsets::All(2.0));
         bottomContainer->setDisplay(Display::Flex);
         
         // 创建两个圆角矩形演示
