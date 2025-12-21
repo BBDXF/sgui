@@ -620,17 +620,67 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
         }
     }
 
-    // 绘制边框 - 使用统一的圆角路径
-    if (hasBorderRadius())
+    // 获取边框宽度
+    float borderLeft = getLayoutBorderLeft();
+    float borderTop = getLayoutBorderTop();
+    float borderRight = getLayoutBorderRight();
+    float borderBottom = getLayoutBorderBottom();
+
+    // 检查是否所有边框宽度相同
+    bool uniformBorder = (borderLeft == borderTop && borderTop == borderRight && borderRight == borderBottom);
+
+    if (uniformBorder)
     {
-        createComplexRoundedRectanglePath(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        // 所有边框宽度相同，使用原有逻辑
+        // 绘制边框 - 使用统一的圆角路径
+        if (hasBorderRadius())
+        {
+            createComplexRoundedRectanglePath(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        }
+        else
+        {
+            cairo_rectangle(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        }
+        cairo_stroke(cr);
     }
     else
     {
-        cairo_rectangle(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
-    }
+        // 边框宽度不同，使用fill rule绘制边框区域
+        // 保存当前路径状态
+        cairo_new_path(cr);
 
-    cairo_stroke(cr);
+        // 创建外部路径（边框外边界）
+        if (hasBorderRadius())
+        {
+            createComplexRoundedRectanglePath(cr, borderX, borderY, borderRectWidth, borderRectHeight);
+        }
+        else
+        {
+            cairo_rectangle(cr, borderX, borderY, borderRectWidth, borderRectHeight);
+        }
+
+        // 创建内部路径（边框内边界）
+        float innerX = borderX + borderLeft;
+        float innerY = borderY + borderTop;
+        float innerWidth = borderRectWidth - borderLeft - borderRight;
+        float innerHeight = borderRectHeight - borderTop - borderBottom;
+
+        if (innerWidth > 0 && innerHeight > 0)
+        {
+            if (hasBorderRadius())
+            {
+                createComplexRoundedRectanglePath(cr, innerX, innerY, innerWidth, innerHeight);
+            }
+            else
+            {
+                cairo_rectangle(cr, innerX, innerY, innerWidth, innerHeight);
+            }
+        }
+
+        // 使用EVEN_ODD规则填充边框区域
+        cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
+        cairo_fill(cr);
+    }
 
     // 重置虚线设置
     cairo_set_dash(cr, nullptr, 0, 0);

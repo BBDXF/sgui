@@ -44,6 +44,7 @@ int main() {
         titleContainer->setHeight(80);
         titleContainer->setMargin(EdgeInsets::All(10.0));
         titleContainer->setPadding(EdgeInsets::All(8.0));
+        titleContainer->setBorder(EdgeInsets::Only(4.0, 8.0, 0.0, 0.0));
         titleContainer->setBorderRadius(EdgeInsets::Radius(0, 40, 40, 16));
         
         // 创建内容容器（水平布局）
