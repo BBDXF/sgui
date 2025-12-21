@@ -585,14 +585,11 @@ void SLayout::renderTree(cairo_t* cr) {
     cairo_save(cr);
     
     // 获取布局信息
+    // left/top/... 已经计算包含了 margin
     float left = getLeft();
     float top = getTop();
     float width = getLayoutWidth();
     float height = getLayoutHeight();
-    float paddingLeft = getLayoutPaddingLeft();
-    float paddingTop = getLayoutPaddingTop();
-    float paddingRight = getLayoutPaddingRight();
-    float paddingBottom = getLayoutPaddingBottom();
     
     // 移动到容器位置
     cairo_translate(cr, left, top);
@@ -604,18 +601,10 @@ void SLayout::renderTree(cairo_t* cr) {
         cairo_clip(cr);
     }
     
-    // 绘制背景
-    cairo_save(cr);
+    // 绘制自定义controll
     render(cr); // 调用子类的render方法
-    cairo_restore(cr);
     
-    // 移动到内容区域（考虑内边距）
-    cairo_translate(cr, paddingLeft, paddingTop);
-    
-    // 绘制子节点
-    float contentWidth = width - paddingLeft - paddingRight;
-    float contentHeight = height - paddingTop - paddingBottom;
-    
+    // 遍历子节点
     for (const auto& child : m_children) {
         if (child->getDisplay() != Display::None) {
             child->renderTree(cr);

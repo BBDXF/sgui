@@ -19,6 +19,12 @@ SContainer::SContainer()
     setBackgroundColor(Color::White());
 }
 
+SContainer::~SContainer()
+{
+    // 清理背景资源
+    cleanupBackgroundSource();
+}
+
 // ====================================================================
 // 背景相关属性实现
 // ====================================================================
@@ -83,7 +89,7 @@ void SContainer::setBoxShadow(const BoxShadow &shadow)
 
 void SContainer::clearBorderStyle()
 {
-    m_borderColor = Color(0, 0, 0, 0); // 透明边框
+    m_borderColor = Color(0, 0, 0, 0); //透明边框
     m_borderStyle = BorderStyle::Solid;
     m_borderRadius = EdgeInsets();
     m_boxShadow = BoxShadow();
@@ -180,6 +186,8 @@ void SContainer::clearTextStyle()
 
 // ====================================================================
 // 重写基类函数实现
+// render只绘制box内部区域（border+padding+content)
+// 假定调用者已经将坐标平移到border边界(0,0)
 // ====================================================================
 
 void SContainer::render(cairo_t *cr)
@@ -366,12 +374,84 @@ void SContainer::measureText(float &width, float &height)
     std::cout << "  Lines: " << lineCount << ", Max line length: " << maxLineLength << std::endl;
 }
 
-void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width, float height)
+// 创建圆角矩形路径的辅助函数
+void SContainer::createRoundedRectanglePath(cairo_t *cr, float x, float y, float width, float height, float radius)
 {
-    if (!hasBackground())
+    if (radius <= 0)
+    {
+        cairo_rectangle(cr, x, y, width, height);
         return;
+    }
 
-    // 按照优先级绘制背景：渐变 > 图片 > 颜色
+    // 确保半径不会超过矩形的一半
+    float maxRadius = std::min(width / 2.0f, height / 2.0f);
+    radius = std::min(radius, maxRadius);
+
+    cairo_move_to(cr, x + radius, y);
+    cairo_line_to(cr, x + width - radius, y);
+    cairo_arc(cr, x + width - radius, y + radius, radius, -M_PI / 2, 0);
+    cairo_line_to(cr, x + width, y + height - radius);
+    cairo_arc(cr, x + width - radius, y + height - radius, radius, 0, M_PI / 2);
+    cairo_line_to(cr, x + radius, y + height);
+    cairo_arc(cr, x + radius, y + height - radius, radius, M_PI / 2, M_PI);
+    cairo_line_to(cr, x, y + radius);
+    cairo_arc(cr, x + radius, y + radius, radius, M_PI, -M_PI / 2);
+    cairo_close_path(cr);
+}
+
+// 创建复杂圆角矩形路径（支持不同方向的圆角）
+void SContainer::createComplexRoundedRectanglePath(cairo_t *cr, float x, float y, float width, float height)
+{
+    float radiusTL = m_borderRadius.top.value;
+    float radiusTR = m_borderRadius.right.value;
+    float radiusBR = m_borderRadius.bottom.value;
+    float radiusBL = m_borderRadius.left.value;
+
+    // 参考 drawBorderCairo 的实现方式，从左上角开始
+    cairo_move_to(cr, x + radiusTL, y);
+    
+    // 上边线到右上角圆弧的起点
+    cairo_line_to(cr, x + width - radiusTR, y);
+    
+    // 右上角圆弧
+    if (radiusTR > 0)
+    {
+        cairo_arc(cr, x + width - radiusTR, y + radiusTR, radiusTR, -M_PI / 2, 0);
+    }
+    
+    // 右边线到右下角圆弧的起点
+    cairo_line_to(cr, x + width, y + height - radiusBR);
+    
+    // 右下角圆弧
+    if (radiusBR > 0)
+    {
+        cairo_arc(cr, x + width - radiusBR, y + height - radiusBR, radiusBR, 0, M_PI / 2);
+    }
+    
+    // 下边线到左下角圆弧的起点
+    cairo_line_to(cr, x + radiusBL, y + height);
+    
+    // 左下角圆弧
+    if (radiusBL > 0)
+    {
+        cairo_arc(cr, x + radiusBL, y + height - radiusBL, radiusBL, M_PI / 2, M_PI);
+    }
+    
+    // 左边线到左上角圆弧的起点
+    cairo_line_to(cr, x, y + radiusTL);
+    
+    // 左上角圆弧
+    if (radiusTL > 0)
+    {
+        cairo_arc(cr, x + radiusTL, y + radiusTL, radiusTL, M_PI, -M_PI / 2);
+    }
+
+    cairo_close_path(cr);
+}
+
+// 设置背景源
+void SContainer::setupBackgroundSource(cairo_t *cr, float x, float y, float width, float height)
+{
     if (m_hasBackgroundGradient && !m_backgroundGradient.stops.empty())
     {
         // 简单的线性渐变实现（后续可以扩展为更复杂的渐变）
@@ -383,9 +463,7 @@ void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width,
         }
 
         cairo_set_source(cr, gradient);
-        cairo_rectangle(cr, x, y, width, height);
-        cairo_fill(cr);
-        cairo_pattern_destroy(gradient);
+        m_currentPattern = gradient;
     }
     else if (m_hasBackgroundImage && !m_backgroundImage.empty())
     {
@@ -403,14 +481,9 @@ void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width,
                 // 设置图片缩放模式
                 cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
 
-                // 绘制图片背景
                 cairo_set_source(cr, pattern);
-                cairo_rectangle(cr, x, y, width, height);
-                cairo_fill(cr);
-
-                // 清理资源
-                cairo_pattern_destroy(pattern);
-                cairo_surface_destroy(image_surface);
+                m_currentPattern = pattern;
+                m_currentSurface = image_surface;
             }
         }
     }
@@ -418,9 +491,72 @@ void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width,
     {
         // 纯色背景
         cairo_set_source_rgba(cr, m_backgroundColor.r, m_backgroundColor.g, m_backgroundColor.b, m_backgroundColor.a);
-        cairo_rectangle(cr, x, y, width, height);
-        cairo_fill(cr);
+        m_currentPattern = nullptr;
+        m_currentSurface = nullptr;
     }
+}
+
+// 清理背景资源
+void SContainer::cleanupBackgroundSource()
+{
+    if (m_currentPattern)
+    {
+        cairo_pattern_destroy(m_currentPattern);
+        m_currentPattern = nullptr;
+    }
+    if (m_currentSurface)
+    {
+        cairo_surface_destroy(m_currentSurface);
+        m_currentSurface = nullptr;
+    }
+}
+
+// 检查是否有圆角
+bool SContainer::hasBorderRadius() const
+{
+    return (m_borderRadius.left.value > 0 || m_borderRadius.top.value > 0 || 
+            m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0);
+}
+
+void SContainer::drawBackgroundCairo(cairo_t *cr, float x, float y, float width, float height)
+{
+    if (!hasBackground())
+        return;
+
+    // 获取边框信息用于背景绘制
+    float borderLeft = getLayoutBorderLeft();
+    float borderTop = getLayoutBorderTop();
+    float borderRight = getLayoutBorderRight();
+    float borderBottom = getLayoutBorderBottom();
+
+    // 计算背景区域（排除边框）
+    float bgX = x + borderLeft;
+    float bgY = y + borderTop;
+    float bgWidth = width - borderLeft - borderRight;
+    float bgHeight = height - borderTop - borderBottom;
+
+    if (bgWidth <= 0 || bgHeight <= 0)
+        return;
+
+    // 设置背景源
+    setupBackgroundSource(cr, bgX, bgY, bgWidth, bgHeight);
+
+    // 使用统一的圆角路径（与边框一致）
+    if (hasBorderRadius())
+    {
+        // 使用复杂圆角路径支持不同方向的圆角
+        createComplexRoundedRectanglePath(cr, bgX, bgY, bgWidth, bgHeight);
+    }
+    else
+    {
+        // 矩形背景
+        cairo_rectangle(cr, bgX, bgY, bgWidth, bgHeight);
+    }
+
+    cairo_fill(cr);
+
+    // 清理资源
+    cleanupBackgroundSource();
 }
 
 void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, float height)
@@ -428,18 +564,14 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
     if (!hasBorderStyle())
         return;
 
-    // 考虑内边距（边框绘制在外层）
-    float paddingLeft = getLayoutPaddingLeft();
-    float paddingRight = getLayoutPaddingRight();
-    float paddingTop = getLayoutPaddingTop();
-    float paddingBottom = getLayoutPaddingBottom();
+    // 边框应该绘制在整个容器的外层，包含padding但不包含margin
+    // 边框路径应该围绕整个content+padding区域
+    float borderX = x;
+    float borderY = y;
+    float borderRectWidth = width;
+    float borderRectHeight = height;
 
-    float borderX = x + paddingLeft;
-    float borderY = y + paddingTop;
-    float borderWidth = width - paddingLeft - paddingRight;
-    float borderHeight = height - paddingTop - paddingBottom;
-
-    if (borderWidth <= 0 || borderHeight <= 0)
+    if (borderRectWidth <= 0 || borderRectHeight <= 0)
         return;
 
     // 设置边框颜色
@@ -453,18 +585,34 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
     }
 
     // 设置边框线宽
-    cairo_set_line_width(cr, 2.0); // 默认线宽2像素
+    float borderLineWidth = getLayoutBorderLeft(); // 使用左边框宽度（简化）
+    if (borderLineWidth <= 0) borderLineWidth = 2.0; // 默认线宽2像素
+    cairo_set_line_width(cr, borderLineWidth);
+
+    // 调整边框绘制区域，确保边框不会超出容器边界
+    float halfBorder = borderLineWidth / 2.0f;
+    float adjustedX = borderX + halfBorder;
+    float adjustedY = borderY + halfBorder;
+    float adjustedWidth = borderRectWidth - borderLineWidth;
+    float adjustedHeight = borderRectHeight - borderLineWidth;
+
+    if (adjustedWidth <= 0 || adjustedHeight <= 0)
+        return;
 
     // 设置边框样式
     if (m_borderStyle != BorderStyle::Solid)
     {
+        // 使用静态数组避免内存泄漏
+        static double dashed_pattern[2] = {5.0, 5.0};
+        static double dotted_pattern[2] = {2.0, 2.0};
+        
         switch (m_borderStyle)
         {
         case BorderStyle::Dashed:
-            cairo_set_dash(cr, new double[2]{5.0, 5.0}, 2, 0);
+            cairo_set_dash(cr, dashed_pattern, 2, 0);
             break;
         case BorderStyle::Dotted:
-            cairo_set_dash(cr, new double[2]{2.0, 2.0}, 2, 0);
+            cairo_set_dash(cr, dotted_pattern, 2, 0);
             break;
         default:
             cairo_set_dash(cr, nullptr, 0, 0); // 实线
@@ -472,34 +620,14 @@ void SContainer::drawBorderCairo(cairo_t *cr, float x, float y, float width, flo
         }
     }
 
-    // 绘制边框
-    float radius = m_borderRadius.left.value; // 使用左边半径（简化）
-    if (radius > 0 || m_borderRadius.top.value > 0 || m_borderRadius.right.value > 0 || m_borderRadius.bottom.value > 0)
+    // 绘制边框 - 使用统一的圆角路径
+    if (hasBorderRadius())
     {
-        // 圆角矩形边框
-        if (radius > 0)
-        {
-            // 绘制圆角矩形路径
-            cairo_move_to(cr, borderX + radius, borderY);
-            cairo_line_to(cr, borderX + borderWidth - radius, borderY);
-            cairo_arc(cr, borderX + borderWidth - radius, borderY + radius, radius, -M_PI / 2, 0);
-            cairo_line_to(cr, borderX + borderWidth, borderY + borderHeight - radius);
-            cairo_arc(cr, borderX + borderWidth - radius, borderY + borderHeight - radius, radius, 0, M_PI / 2);
-            cairo_line_to(cr, borderX + radius, borderY + borderHeight);
-            cairo_arc(cr, borderX + radius, borderY + borderHeight - radius, radius, M_PI / 2, M_PI);
-            cairo_line_to(cr, borderX, borderY + radius);
-            cairo_arc(cr, borderX + radius, borderY + radius, radius, M_PI, -M_PI / 2);
-            cairo_close_path(cr);
-        }
-        else
-        {
-            cairo_rectangle(cr, borderX, borderY, borderWidth, borderHeight);
-        }
+        createComplexRoundedRectanglePath(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
     }
     else
     {
-        // 普通矩形边框
-        cairo_rectangle(cr, borderX, borderY, borderWidth, borderHeight);
+        cairo_rectangle(cr, adjustedX, adjustedY, adjustedWidth, adjustedHeight);
     }
 
     cairo_stroke(cr);

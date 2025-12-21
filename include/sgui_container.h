@@ -23,7 +23,7 @@ using SContainerPtr = std::shared_ptr<SContainer>;
 class SContainer : public SLayout {
 public:
     SContainer();
-    ~SContainer() override = default;
+    ~SContainer();
     
     // ====================================================================
     // 背景相关属性
@@ -222,8 +222,37 @@ private:
     /** 使用Cairo绘制文本 */
     void drawTextCairo(cairo_t* cr, float x, float y, float width, float height);
     
+    // ====================================================================
+    // 圆角边框相关私有辅助函数
+    // ====================================================================
+    
+    /** 创建圆角矩形路径 */
+    void createRoundedRectanglePath(cairo_t* cr, float x, float y, float width, float height, float radius);
+    
+    /** 创建复杂圆角矩形路径（支持不同方向的圆角） */
+    void createComplexRoundedRectanglePath(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 设置背景源 */
+    void setupBackgroundSource(cairo_t* cr, float x, float y, float width, float height);
+    
+    /** 清理背景资源 */
+    void cleanupBackgroundSource();
+    
+    /** 检查是否有圆角 */
+    bool hasBorderRadius() const;
+    
     /** 样式更改标记 */
     bool m_stylesDirty = true;
+    
+    // ====================================================================
+    // 背景资源管理成员变量
+    // ====================================================================
+    
+    /** 当前使用的图案（用于清理） */
+    mutable cairo_pattern_t* m_currentPattern = nullptr;
+    
+    /** 当前使用的表面（用于清理） */
+    mutable cairo_surface_t* m_currentSurface = nullptr;
 };
 
 } // namespace sgui

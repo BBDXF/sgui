@@ -21,6 +21,9 @@ add_subdirectory(containerex_demo)
 # Cairo demo
 add_subdirectory(cairo_demo)
 
+# Margin & Padding test
+add_subdirectory(margin_padding_test)
+
 # 链接GLFW、OpenGL库和sgui库
 find_package(OpenGL REQUIRED)
 target_link_libraries(glfw_hello
@@ -43,4 +46,3 @@ target_include_directories(glfw_hello PRIVATE
 target_include_directories(multi_win PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
-

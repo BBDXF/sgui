@@ -265,6 +265,58 @@ struct EdgeInsets
     {
         return EdgeInsets(left, top, right, bottom);
     }
+    // 用作圆角矩形时候的radius
+    static EdgeInsets Radius(float leftTop, float topRight, float rightBottom, float bottomLeft)
+    {
+        return EdgeInsets(bottomLeft, leftTop, topRight, rightBottom);
+    }
+};
+
+/**
+ * @brief 圆角半径设置
+ *
+ * 支持分别为四个角设置不同的圆角半径
+ * 按照 CSS 标准的角落命名约定
+ */
+struct BorderRadius
+{
+    LayoutValue topLeft;      // 左上角
+    LayoutValue topRight;     // 右上角
+    LayoutValue bottomRight;    // 右下角
+    LayoutValue bottomLeft;     // 左下角
+
+    BorderRadius() = default;
+    BorderRadius(float all) : topLeft(all), topRight(all), bottomRight(all), bottomLeft(all)
+    {
+    }
+    BorderRadius(float horizontal, float vertical) : topLeft(horizontal), topRight(horizontal), bottomRight(vertical), bottomLeft(vertical)
+    {
+    }
+    BorderRadius(float topLeft, float topRight, float bottomRight, float bottomLeft) 
+        : topLeft(topLeft), topRight(topRight), bottomRight(bottomRight), bottomLeft(bottomLeft)
+    {
+    }
+
+    static BorderRadius All(float value)
+    {
+        return BorderRadius(value);
+    }
+    static BorderRadius Horizontal(float value)
+    {
+        return BorderRadius(value, value, value, value);
+    }
+    static BorderRadius Vertical(float value)
+    {
+        return BorderRadius(value, value, value, value);
+    }
+    static BorderRadius Symmetric(float horizontal, float vertical)
+    {
+        return BorderRadius(horizontal, vertical, horizontal, vertical);
+    }
+    static BorderRadius Only(float topLeft, float topRight, float bottomRight, float bottomLeft)
+    {
+        return BorderRadius(topLeft, topRight, bottomRight, bottomLeft);
+    }
 };
 
 /**

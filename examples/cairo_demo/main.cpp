@@ -34,14 +34,17 @@ int main() {
         // 创建根容器
         auto rootContainer = std::make_shared<SContainer>();
         rootContainer->setFlexDirection(FlexDirection::Column);
-        rootContainer->setBackgroundColor(Color::fromHex(0xFFFFFF));
+        // rootContainer->setBackgroundColor(Color::fromHex(0xFFFFFF));
         rootContainer->setDisplay(Display::Flex);
         
         // 创建标题容器
         auto titleContainer = std::make_shared<SContainer>();
         titleContainer->setText("Cairo渲染演示\n这是一个多行文本\n😃啊啊");
         titleContainer->setBackgroundColor(Color::fromRGB(52, 152, 219)); // 蓝色
-        titleContainer->setHeight(60);
+        titleContainer->setHeight(80);
+        titleContainer->setMargin(EdgeInsets::All(10.0));
+        titleContainer->setPadding(EdgeInsets::All(8.0));
+        titleContainer->setBorderRadius(EdgeInsets::Radius(0, 40, 40, 16));
         
         // 创建内容容器（水平布局）
         auto contentContainer = std::make_shared<SContainer>();
