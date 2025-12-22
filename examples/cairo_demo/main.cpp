@@ -63,6 +63,8 @@ int main() {
         redBox->setBackgroundColor(Color::fromRGB(231, 76, 60)); // 红色
         redBox->setWidth(LayoutValue::Point(240));
         redBox->setHeight(LayoutValue::Point(200));
+        redBox->setTextAlign(TextAlign::Center);
+        redBox->setTextDecoration(TextDecoration::Underline);
         
         auto greenBox = std::make_shared<SContainer>();
         greenBox->setText("绿色 - body");
@@ -75,6 +77,8 @@ int main() {
         blueBox->setBackgroundColor(Color::fromRGB(155, 89, 182)); // 紫色
         blueBox->setWidth(LayoutValue::Point(240));
         blueBox->setHeight(LayoutValue::Point(200));
+        blueBox->setBorder(EdgeInsets::All(2.0));
+        blueBox->setBorderRadius(EdgeInsets::All(8.0));
         
         // 创建底部容器
         auto bottomContainer = std::make_shared<SContainer>();

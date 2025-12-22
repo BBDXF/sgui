@@ -712,16 +712,21 @@ void SContainer::drawTextCairo(cairo_t *cr, float x, float y, float width, float
     if (!m_hasTextContent || m_text.empty())
         return;
 
-    // 考虑内边距
+    // 考虑内边距和边框
     float paddingLeft = getLayoutPaddingLeft();
     float paddingRight = getLayoutPaddingRight();
     float paddingTop = getLayoutPaddingTop();
     float paddingBottom = getLayoutPaddingBottom();
 
-    float textAreaX = x + paddingLeft;
-    float textAreaY = y + paddingTop;
-    float textAreaWidth = width - paddingLeft - paddingRight;
-    float textAreaHeight = height - paddingTop - paddingBottom;
+    float borderLeft = getLayoutBorderLeft();
+    float borderRight = getLayoutBorderRight();
+    float borderTop = getLayoutBorderTop();
+    float borderBottom = getLayoutBorderBottom();
+
+    float textAreaX = x + borderLeft + paddingLeft;
+    float textAreaY = y + borderTop + paddingTop;
+    float textAreaWidth = width - borderLeft - borderRight - paddingLeft - paddingRight;
+    float textAreaHeight = height - borderTop - borderBottom - paddingTop - paddingBottom;
 
     if (textAreaWidth <= 0 || textAreaHeight <= 0)
         return;
