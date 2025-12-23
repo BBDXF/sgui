@@ -1,6 +1,6 @@
 /**
  * GUI容器基类
- * 
+ *
  * 继承自SLayout，添加背景、边框和文本样式等功能
  */
 
@@ -8,8 +8,10 @@
 
 #include "sgui_layout.h"
 #include <string>
+#include <utility>
 
-namespace sgui {
+namespace sgui
+{
 
 // 前向声明
 class SContainer;
@@ -18,163 +20,291 @@ class SContainer;
 using SContainerPtr = std::shared_ptr<SContainer>;
 
 /**
+ * MouseEvent回调函数类型
+ */
+using MouseEventCallback = std::function<void(const MouseEvent &)>;
+
+/**
  * ContainerEx类 - 扩展的容器，支持样式属性
  */
-class SContainer : public SLayout {
-public:
+class SContainer : public SLayout
+{
+  public:
     SContainer();
     ~SContainer();
-    
+
     // ====================================================================
     // 背景相关属性
     // ====================================================================
-    
+
     /** 设置背景色 */
-    void setBackgroundColor(const Color& color);
+    void setBackgroundColor(const Color &color);
     /** 获取背景色 */
-    Color getBackgroundColor() const { return m_backgroundColor; }
-    
+    Color getBackgroundColor() const
+    {
+        return m_backgroundColor;
+    }
+
     /** 设置背景图片 */
-    void setBackgroundImage(const std::string& imagePath);
+    void setBackgroundImage(const std::string &imagePath);
     /** 获取背景图片路径 */
-    const std::string& getBackgroundImage() const { return m_backgroundImage; }
-    
+    const std::string &getBackgroundImage() const
+    {
+        return m_backgroundImage;
+    }
+
     /** 设置渐变背景 */
-    void setBackgroundGradient(const BackgroundGradient& gradient);
+    void setBackgroundGradient(const BackgroundGradient &gradient);
     /** 获取渐变背景 */
-    const BackgroundGradient& getBackgroundGradient() const { return m_backgroundGradient; }
-    
+    const BackgroundGradient &getBackgroundGradient() const
+    {
+        return m_backgroundGradient;
+    }
+
     /** 清除背景 */
     void clearBackground();
-    
+
     // ====================================================================
     // 边框样式属性
     // ====================================================================
-    
+
     /** 设置边框颜色 */
-    void setBorderColor(const Color& color);
+    void setBorderColor(const Color &color);
     /** 获取边框颜色 */
-    Color getBorderColor() const { return m_borderColor; }
-    
+    Color getBorderColor() const
+    {
+        return m_borderColor;
+    }
+
     /** 设置边框样式 */
     void setBorderStyle(BorderStyle style);
     /** 获取边框样式 */
-    BorderStyle getBorderStyle() const { return m_borderStyle; }
-    
+    BorderStyle getBorderStyle() const
+    {
+        return m_borderStyle;
+    }
+
     /** 设置圆角半径 */
-    void setBorderRadius(const EdgeInsets& radius);
+    void setBorderRadius(const EdgeInsets &radius);
     /** 获取圆角半径 */
-    const EdgeInsets& getBorderRadius() const { return m_borderRadius; }
-    
+    const EdgeInsets &getBorderRadius() const
+    {
+        return m_borderRadius;
+    }
+
     /** 设置阴影 */
-    void setBoxShadow(const BoxShadow& shadow);
+    void setBoxShadow(const BoxShadow &shadow);
     /** 获取阴影 */
-    const BoxShadow& getBoxShadow() const { return m_boxShadow; }
-    
+    const BoxShadow &getBoxShadow() const
+    {
+        return m_boxShadow;
+    }
+
     /** 清除边框样式 */
     void clearBorderStyle();
-    
+
     // ====================================================================
     // 文本样式属性
     // ====================================================================
-    
+
     /** 设置文本颜色 */
-    void setColor(const Color& color);
+    void setColor(const Color &color);
     /** 获取文本颜色 */
-    Color getColor() const { return m_textColor; }
-    
+    Color getColor() const
+    {
+        return m_textColor;
+    }
+
     /** 设置字体大小 */
     void setFontSize(float size);
     /** 获取字体大小 */
-    float getFontSize() const { return m_fontSize; }
-    
+    float getFontSize() const
+    {
+        return m_fontSize;
+    }
+
     /** 设置字体族 */
-    void setFontFamily(const std::string& family);
+    void setFontFamily(const std::string &family);
     /** 获取字体族 */
-    const std::string& getFontFamily() const { return m_fontFamily; }
-    
+    const std::string &getFontFamily() const
+    {
+        return m_fontFamily;
+    }
+
     /** 设置字体粗细 */
     void setFontWeight(FontWeight weight);
     /** 获取字体粗细 */
-    FontWeight getFontWeight() const { return m_fontWeight; }
-    
+    FontWeight getFontWeight() const
+    {
+        return m_fontWeight;
+    }
+
     /** 设置字体样式 */
     void setFontStyle(FontStyle style);
     /** 获取字体样式 */
-    FontStyle getFontStyle() const { return m_fontStyle; }
-    
+    FontStyle getFontStyle() const
+    {
+        return m_fontStyle;
+    }
+
     /** 设置文本对齐 */
     void setTextAlign(TextAlign align);
     /** 获取文本对齐 */
-    TextAlign getTextAlign() const { return m_textAlign; }
-    
+    TextAlign getTextAlign() const
+    {
+        return m_textAlign;
+    }
+
     /** 设置文本装饰 */
     void setTextDecoration(TextDecoration decoration);
     /** 获取文本装饰 */
-    TextDecoration getTextDecoration() const { return m_textDecoration; }
-    
+    TextDecoration getTextDecoration() const
+    {
+        return m_textDecoration;
+    }
+
     /** 设置文本溢出处理 */
     void setTextOverflow(TextOverflow overflow);
     /** 获取文本溢出处理 */
-    TextOverflow getTextOverflow() const { return m_textOverflow; }
-    
+    TextOverflow getTextOverflow() const
+    {
+        return m_textOverflow;
+    }
+
     /** 设置行高 */
     void setLineHeight(float height);
     /** 获取行高 */
-    float getLineHeight() const { return m_lineHeight; }
-    
+    float getLineHeight() const
+    {
+        return m_lineHeight;
+    }
+
     /** 设置文本缩进 */
     void setTextIndent(float indent);
     /** 获取文本缩进 */
-    float getTextIndent() const { return m_textIndent; }
-    
+    float getTextIndent() const
+    {
+        return m_textIndent;
+    }
+
     /** 设置文本内容 */
-    void setText(const std::string& text);
+    void setText(const std::string &text);
     /** 获取文本内容 */
-    const std::string& getText() const { return m_text; }
-    
+    const std::string &getText() const
+    {
+        return m_text;
+    }
+
     /** 清除文本样式 */
     void clearTextStyle();
-    
+
     // ====================================================================
     // 重写基类函数
     // ====================================================================
-    
+
     /** 重写绘制函数 */
-    void render(cairo_t* cr) override;
-    
+    void render(cairo_t *cr) override;
+
     /** 重写测量函数 */
-    void onMeasure(float width, float height, float& measuredWidth, float& measuredHeight) override;
-    
+    void onMeasure(float width, float height, float &measuredWidth, float &measuredHeight) override;
+
     // ====================================================================
     // 样式管理
     // ====================================================================
-    
+
     /** 应用所有样式（批量更新） */
     void applyStyles();
-    
+
     /** 重置所有样式到默认值 */
     void resetStyles();
-    
+
     /** 检查是否有背景 */
     bool hasBackground() const;
-    
+
     /** 检查是否有边框样式 */
     bool hasBorderStyle() const;
-    
+
     /** 检查是否有文本样式 */
     bool hasTextStyle() const;
 
-private:
+    // ====================================================================
+    // 事件处理虚函数
+    // ====================================================================
+
+    /** 鼠标按下事件 */
+    virtual void onMousePressed(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标释放事件 */
+    virtual void onMouseReleased(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标点击事件 */
+    virtual void onMouseClicked(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标双击事件 */
+    virtual void onMouseDoubleClicked(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标移动事件 */
+    virtual void onMouseMoved(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标进入事件 */
+    virtual void onMouseEntered(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 鼠标离开事件 */
+    virtual void onMouseExited(const MouseEvent &event)
+    {
+        if (m_cb_mouse != nullptr)
+            m_cb_mouse(event);
+    }
+
+    /** 键盘按下事件 */
+    virtual void onKeyPressed(const KeyEvent &event)
+    {
+    }
+
+    /** 键盘释放事件 */
+    virtual void onKeyReleased(const KeyEvent &event)
+    {
+    }
+
+    void setCallbackMouse(MouseEventCallback cb)
+    {
+        m_cb_mouse = std::move(cb);
+    }
+
+  private:
     // ====================================================================
     // 背景相关成员变量
     // ====================================================================
     Color m_backgroundColor;
     std::string m_backgroundImage;
     BackgroundGradient m_backgroundGradient;
-    bool m_hasBackgroundImage = false;        // 保留：检查图片路径是否为空
-    bool m_hasBackgroundGradient = false;     // 保留：检查渐变是否有停止点
-    
+    bool m_hasBackgroundImage = false;    // 保留：检查图片路径是否为空
+    bool m_hasBackgroundGradient = false; // 保留：检查渐变是否有停止点
+
     // ====================================================================
     // 边框样式成员变量
     // ====================================================================
@@ -182,7 +312,7 @@ private:
     BorderStyle m_borderStyle = BorderStyle::Solid;
     EdgeInsets m_borderRadius;
     BoxShadow m_boxShadow;
-    
+
     // ====================================================================
     // 文本样式成员变量
     // ====================================================================
@@ -197,62 +327,65 @@ private:
     float m_lineHeight = 1.2f;
     float m_textIndent = 0.0f;
     std::string m_text;
-    bool m_hasTextContent = false;            // 保留：检查文本是否为空
-    
+    bool m_hasTextContent = false; // 保留：检查文本是否为空
+
     // ====================================================================
     // 私有辅助函数
     // ====================================================================
-    
+
     /** 测量文本尺寸 */
-    void measureText(float& width, float& height);
-    
+    void measureText(float &width, float &height);
+
     /** 标记样式已更改 */
     void markStylesDirty();
-    
+
     // ====================================================================
     // Cairo绘制相关私有辅助函数
     // ====================================================================
-    
+
     /** 使用Cairo绘制背景 */
-    void drawBackgroundCairo(cairo_t* cr, float x, float y, float width, float height);
-    
+    void drawBackgroundCairo(cairo_t *cr, float x, float y, float width, float height);
+
     /** 使用Cairo绘制边框 */
-    void drawBorderCairo(cairo_t* cr, float x, float y, float width, float height);
-    
+    void drawBorderCairo(cairo_t *cr, float x, float y, float width, float height);
+
     /** 使用Cairo绘制文本 */
-    void drawTextCairo(cairo_t* cr, float x, float y, float width, float height);
-    
+    void drawTextCairo(cairo_t *cr, float x, float y, float width, float height);
+
     // ====================================================================
     // 圆角边框相关私有辅助函数
     // ====================================================================
-    
+
     /** 创建圆角矩形路径 */
-    void createRoundedRectanglePath(cairo_t* cr, float x, float y, float width, float height, float radius);
-    
+    void createRoundedRectanglePath(cairo_t *cr, float x, float y, float width, float height, float radius);
+
     /** 创建复杂圆角矩形路径（支持不同方向的圆角） */
-    void createComplexRoundedRectanglePath(cairo_t* cr, float x, float y, float width, float height);
-    
+    void createComplexRoundedRectanglePath(cairo_t *cr, float x, float y, float width, float height);
+
     /** 设置背景源 */
-    void setupBackgroundSource(cairo_t* cr, float x, float y, float width, float height);
-    
+    void setupBackgroundSource(cairo_t *cr, float x, float y, float width, float height);
+
     /** 清理背景资源 */
     void cleanupBackgroundSource();
-    
+
     /** 检查是否有圆角 */
     bool hasBorderRadius() const;
-    
+
     /** 样式更改标记 */
     bool m_stylesDirty = true;
-    
+
     // ====================================================================
     // 背景资源管理成员变量
     // ====================================================================
-    
+
     /** 当前使用的图案（用于清理） */
-    mutable cairo_pattern_t* m_currentPattern = nullptr;
-    
+    mutable cairo_pattern_t *m_currentPattern = nullptr;
+
     /** 当前使用的表面（用于清理） */
-    mutable cairo_surface_t* m_currentSurface = nullptr;
+    mutable cairo_surface_t *m_currentSurface = nullptr;
+
+    // callback
+    MouseEventCallback m_cb_mouse{nullptr};
 };
 
 } // namespace sgui

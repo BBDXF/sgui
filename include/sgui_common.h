@@ -566,4 +566,179 @@ enum class Direction
     RTL = 2      // 从右到左的方向
 };
 
+// =============================================================================
+// 事件处理相关定义
+// =============================================================================
+
+/**
+ * @brief 鼠标按钮枚举
+ */
+enum class MouseButton
+{
+    Left = 0,     // 左键
+    Right = 1,    // 右键
+    Middle = 2,   // 中键
+    X1 = 3,       // 侧键1
+    X2 = 4        // 侧键2
+};
+
+/**
+ * @brief 鼠标事件类型枚举（位标志）
+ *
+ * 支持多个事件类型的组合，使用位运算操作
+ */
+enum class MouseEventType : uint16_t
+{
+    None        = 0,        // 无事件
+    Pressed     = 1 << 0,   // 鼠标按下
+    Released    = 1 << 1,   // 鼠标释放
+    Clicked     = 1 << 2,   // 鼠标点击（按下后释放）
+    DoubleClicked = 1 << 3, // 鼠标双击
+    Moving      = 1 << 4,   // 鼠标移动
+    Entering    = 1 << 5,   // 鼠标进入控件区域
+    Leaving     = 1 << 6,   // 鼠标离开控件区域
+    Hover       = 1 << 7,   // 鼠标悬停
+    Scrolling   = 1 << 8    // 鼠标滚轮滚动
+};
+
+// MouseEventType 位运算操作符重载
+inline MouseEventType operator|(MouseEventType a, MouseEventType b)
+{
+    return static_cast<MouseEventType>(static_cast<uint16_t>(a) | static_cast<uint16_t>(b));
+}
+
+inline MouseEventType operator&(MouseEventType a, MouseEventType b)
+{
+    return static_cast<MouseEventType>(static_cast<uint16_t>(a) & static_cast<uint16_t>(b));
+}
+
+inline MouseEventType& operator|=(MouseEventType& a, MouseEventType b)
+{
+    a = a | b;
+    return a;
+}
+
+inline MouseEventType& operator&=(MouseEventType& a, MouseEventType b)
+{
+    a = a & b;
+    return a;
+}
+
+// 检查是否包含指定事件类型的便利函数
+inline bool hasEventType(MouseEventType value, MouseEventType flag)
+{
+    return (static_cast<uint16_t>(value) & static_cast<uint16_t>(flag)) != 0;
+}
+
+/**
+ * @brief 键盘事件类型枚举
+ */
+enum class KeyEventType : uint8_t
+{
+    Null    = 0,    // 无事件
+    Pressed = 1 << 0, // 键盘按下
+    Released = 1 << 1, // 键盘释放
+    Repeat  = 1 << 2  // 键盘重复（长按）
+};
+
+// KeyEventType 位运算操作符重载
+inline KeyEventType operator|(KeyEventType a, KeyEventType b)
+{
+    return static_cast<KeyEventType>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+
+inline KeyEventType operator&(KeyEventType a, KeyEventType b)
+{
+    return static_cast<KeyEventType>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+
+inline KeyEventType& operator|=(KeyEventType& a, KeyEventType b)
+{
+    a = a | b;
+    return a;
+}
+
+inline KeyEventType& operator&=(KeyEventType& a, KeyEventType b)
+{
+    a = a & b;
+    return a;
+}
+
+// 检查是否包含指定键盘事件类型的便利函数
+inline bool hasKeyEventType(KeyEventType value, KeyEventType flag)
+{
+    return (static_cast<uint8_t>(value) & static_cast<uint8_t>(flag)) != 0;
+}
+
+/**
+ * @brief 鼠标事件结构体
+ */
+struct MouseEvent
+{
+    float x, y;                    // 鼠标位置（相对于控件）
+    MouseButton button;            // 鼠标按钮
+    MouseEventType type;            // 事件类型（使用枚举）
+    float scrollX = 0.0f;          // 滚轮X方向偏移（用于滚轮事件）
+    float scrollY = 0.0f;          // 滚轮Y方向偏移（用于滚轮事件）
+    
+    // 向后兼容的布尔属性（通过便利方法实现）
+    bool isPressed() const { return hasEventType(type, MouseEventType::Pressed); }
+    bool isReleased() const { return hasEventType(type, MouseEventType::Released); }
+    bool isClicked() const { return hasEventType(type, MouseEventType::Clicked); }
+    bool isDoubleClicked() const { return hasEventType(type, MouseEventType::DoubleClicked); }
+    bool isMoving() const { return hasEventType(type, MouseEventType::Moving); }
+    bool isEntering() const { return hasEventType(type, MouseEventType::Entering); }
+    bool isLeaving() const { return hasEventType(type, MouseEventType::Leaving); }
+    bool isHover() const { return hasEventType(type, MouseEventType::Hover); }
+    bool isScrolling() const { return hasEventType(type, MouseEventType::Scrolling); }
+    
+    
+    MouseEvent() : x(0), y(0), button(MouseButton::Left), type(MouseEventType::None) {}
+    
+    MouseEvent(float xpos, float ypos, MouseButton btn = MouseButton::Left, MouseEventType evtType = MouseEventType::None)
+        : x(xpos), y(ypos), button(btn), type(evtType) {}
+        
+    // 滚轮事件构造函数
+    MouseEvent(float xpos, float ypos, float scrollXOffset, float scrollYOffset)
+        : x(xpos), y(ypos), button(MouseButton::Left), type(MouseEventType::Scrolling), 
+          scrollX(scrollXOffset), scrollY(scrollYOffset) {}
+};
+
+/**
+ * @brief 键盘事件结构体
+ */
+struct KeyEvent
+{
+    int keyCode;              // 按键代码
+    KeyEventType type;        // 事件类型（使用枚举）
+    int mods = 0;             // 修饰键状态（Ctrl, Shift, Alt等）
+    unsigned int codepoint = 0; // 字符代码（用于字符输入事件）
+    
+    // 向后兼容的布尔属性（通过便利方法实现）
+    bool isPressed() const { return hasKeyEventType(type, KeyEventType::Pressed); }
+    bool isReleased() const { return hasKeyEventType(type, KeyEventType::Released); }
+    bool isRepeat() const { return hasKeyEventType(type, KeyEventType::Repeat); }
+    
+    KeyEvent() : keyCode(0), type(KeyEventType::Null) {}
+    
+    KeyEvent(int key, KeyEventType evtType, int modifiers = 0)
+        : keyCode(key), type(evtType), mods(modifiers) {}
+        
+    // 字符输入事件构造函数
+    KeyEvent(unsigned int charCode)
+        : keyCode(0), type(KeyEventType::Null), codepoint(charCode) {}
+};
+
+/**
+ * @brief 控件状态枚举
+ */
+enum class ControlState
+{
+    Normal,      // 正常状态
+    Hover,       // 鼠标悬停状态
+    Pressed,     // 鼠标按下状态
+    Focused,     // 获得焦点状态
+    Disabled     // 禁用状态
+};
+
 } // namespace sgui

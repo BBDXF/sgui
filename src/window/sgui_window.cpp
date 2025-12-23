@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <thread>
+#include <vector>
 
 // 为了使用glfwGetX11Window函数，需要包含GLFW的头文件
 #ifdef __linux__
@@ -193,13 +194,175 @@ void SWindow::WindowCloseCallback(GLFWwindow *window)
     }
 }
 
+// 全局状态记录，用于跟踪鼠标当前所在的控件（最深层）
+static sgui::SContainer *g_lastMouseInsideContainer = nullptr;
+
+// 辅助函数：查找鼠标位置下的最深层子节点
+static sgui::SContainer *findDeepestContainerAtPosition(sgui::SContainer *container, float x, float y, float &subx, float &suby)
+{
+    if (!container)
+        return nullptr;
+
+    // 获取容器的布局信息
+    float containerX = container->getLeft();
+    float containerY = container->getTop();
+    float containerWidth = container->getLayoutWidth();
+    float containerHeight = container->getLayoutHeight();
+
+    // 检查鼠标是否在容器内
+    if (x < containerX || x >= containerX + containerWidth || y < containerY || y >= containerY + containerHeight)
+    {
+        return nullptr;
+    }
+
+    // 转换为相对于容器的坐标
+    subx = x - containerX;
+    suby = y - containerY;
+
+    // 从后往前遍历子控件（后添加的在上层，优先处理）
+    for (int i = static_cast<int>(container->getChildCount()) - 1; i >= 0; --i)
+    {
+        auto child = container->getChildAt(i);
+        if (child)
+        {
+            auto childContainer = std::dynamic_pointer_cast<sgui::SContainer>(child);
+            if (childContainer)
+            {
+                sgui::SContainer *deepestChild = findDeepestContainerAtPosition(childContainer.get(), x, y, subx, suby);
+                if (deepestChild)
+                {
+                    return deepestChild;
+                }
+            }
+        }
+    }
+
+    // 如果没有更深的子节点包含该位置，返回当前容器
+    return container;
+}
+
+// 辅助函数：将鼠标事件分发到控件树
+static void dispatchMouseEvent(sgui::SContainer *rootContainer, const MouseEvent &event)
+{
+    if (!rootContainer)
+        return;
+
+    // std::cout << "MouseEvent: " << g_lastMouseInsideContainer << ", type: " << (int)event.type << ". x,y: " << event.x << "," << event.y << std::endl;
+
+    // 查找鼠标位置下的最深层子节点
+    float subx{0}, suby{0};
+    sgui::SContainer *targetContainer = findDeepestContainerAtPosition(rootContainer, event.x, event.y, subx, suby);
+
+    // std::cout << "Found ele: " << targetContainer << ". x,y: " << subx << "," << suby << ". w,h: " << targetContainer->getWidth().value << "," <<
+    // targetContainer->getHeight().value
+    //   << std::endl;
+    // 处理 enter/leave 事件：如果目标容器改变了
+    if (targetContainer != g_lastMouseInsideContainer)
+    {
+        // 给旧容器发送 leave 事件
+        if (g_lastMouseInsideContainer)
+        {
+            MouseEvent leaveEvent = event;
+            leaveEvent.type = MouseEventType::Leaving;
+            g_lastMouseInsideContainer->onMouseExited(leaveEvent);
+        }
+
+        // 更新当前容器
+        g_lastMouseInsideContainer = targetContainer;
+
+        // 给新容器发送 enter 事件
+        if (targetContainer)
+        {
+            MouseEvent enterEvent = event;
+            enterEvent.x = subx;
+            enterEvent.y = suby;
+            enterEvent.type = MouseEventType::Entering;
+            targetContainer->onMouseEntered(enterEvent);
+        }
+    }
+
+    // 如果鼠标移动且在容器内，发送移动事件
+    if (event.isMoving() && targetContainer)
+    {
+        MouseEvent moveEvent = event;
+        moveEvent.x = subx;
+        moveEvent.y = suby;
+        targetContainer->onMouseMoved(moveEvent);
+    }
+
+    // 处理其他事件类型（只在目标容器上处理）
+    if (targetContainer)
+    {
+        MouseEvent relativeEvent = event;
+        relativeEvent.x = subx;
+        relativeEvent.y = suby;
+
+        if (event.isPressed())
+        {
+            targetContainer->onMousePressed(relativeEvent);
+        }
+        if (event.isReleased())
+        {
+            targetContainer->onMouseReleased(relativeEvent);
+        }
+        if (event.isClicked())
+        {
+            targetContainer->onMouseClicked(relativeEvent);
+        }
+        if (event.isDoubleClicked())
+        {
+            targetContainer->onMouseDoubleClicked(relativeEvent);
+        }
+        if (event.isScrolling())
+        {
+            relativeEvent.scrollX = event.scrollX;
+            relativeEvent.scrollY = event.scrollY;
+            // 滚轮事件暂时没有对应的处理函数，但可以在这里添加
+            std::cout << "Mouse scroll event at (" << event.x << ", " << event.y << ") delta: (" << event.scrollX << ", " << event.scrollY << ")" << std::endl;
+        }
+    }
+}
+
+// 辅助函数：将键盘事件分发到控件树
+static void dispatchKeyEvent(SContainer *container, const KeyEvent &event)
+{
+    if (!container)
+        return;
+
+    if (g_lastMouseInsideContainer != nullptr)
+    {
+        // 然后处理容器自身的键盘事件
+        if (event.isPressed())
+        {
+            g_lastMouseInsideContainer->onKeyPressed(event);
+        }
+        if (event.isReleased())
+        {
+            g_lastMouseInsideContainer->onKeyReleased(event);
+        }
+
+        // 调试输出
+        std::cout << "Key event: " << static_cast<int>(event.type) << " key: " << event.keyCode << " mods: " << event.mods;
+        if (event.codepoint != 0)
+        {
+            std::cout << " codepoint: " << event.codepoint;
+        }
+        std::cout << std::endl;
+    }
+}
+
 // 鼠标位置回调
 void SWindow::MousePosCallback(GLFWwindow *window, double xpos, double ypos)
 {
     auto win = static_cast<SWindow *>(glfwGetWindowUserPointer(window));
-    if (win)
+    if (win && win->rootContainer_)
     {
-        // std::cout << "Mouse moved: " << win->title_ << " -> (" << xpos << ", " << ypos << ")" << std::endl;
+        MouseEvent event;
+        event.x = xpos;
+        event.y = ypos;
+        event.type = MouseEventType::Moving;
+
+        dispatchMouseEvent(win->rootContainer_.get(), event);
     }
 }
 
@@ -207,9 +370,27 @@ void SWindow::MousePosCallback(GLFWwindow *window, double xpos, double ypos)
 void SWindow::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
     auto win = static_cast<SWindow *>(glfwGetWindowUserPointer(window));
-    if (win)
+    if (win && win->rootContainer_)
     {
-        // std::cout << "Mouse button: " << win->title_ << " -> button: " << button << ", action: " << action << ", mods: " << mods << std::endl;
+        // 获取当前鼠标位置
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        MouseEvent event;
+        event.x = xpos;
+        event.y = ypos;
+        event.button = static_cast<MouseButton>(button);
+
+        if (action == GLFW_PRESS)
+        {
+            event.type = MouseEventType::Pressed;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            event.type = MouseEventType::Released | MouseEventType::Clicked; // 简化处理：释放时视为点击
+        }
+
+        dispatchMouseEvent(win->rootContainer_.get(), event);
     }
 }
 
@@ -217,9 +398,15 @@ void SWindow::MouseButtonCallback(GLFWwindow *window, int button, int action, in
 void SWindow::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     auto win = static_cast<SWindow *>(glfwGetWindowUserPointer(window));
-    if (win)
+    if (win && win->rootContainer_)
     {
-        std::cout << "Mouse scroll: " << win->title_ << " -> (" << xoffset << ", " << yoffset << ")" << std::endl;
+        // 获取当前鼠标位置
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        MouseEvent event(xpos, ypos, static_cast<float>(xoffset), static_cast<float>(yoffset));
+
+        dispatchMouseEvent(win->rootContainer_.get(), event);
     }
 }
 
@@ -227,9 +414,24 @@ void SWindow::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 void SWindow::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     auto win = static_cast<SWindow *>(glfwGetWindowUserPointer(window));
-    if (win)
+    if (win && win->rootContainer_)
     {
-        std::cout << "Key event: " << win->title_ << " -> key: " << key << ", scancode: " << scancode << ", action: " << action << ", mods: " << mods << std::endl;
+        KeyEventType type = KeyEventType::Null;
+        if (action == GLFW_PRESS)
+        {
+            type = KeyEventType::Pressed;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            type = KeyEventType::Released;
+        }
+        else if (action == GLFW_REPEAT)
+        {
+            type = KeyEventType::Repeat;
+        }
+
+        KeyEvent event(key, type, mods);
+        dispatchKeyEvent(win->rootContainer_.get(), event);
     }
 }
 
@@ -237,9 +439,10 @@ void SWindow::KeyCallback(GLFWwindow *window, int key, int scancode, int action,
 void SWindow::CharCallback(GLFWwindow *window, unsigned int codepoint)
 {
     auto win = static_cast<SWindow *>(glfwGetWindowUserPointer(window));
-    if (win)
+    if (win && win->rootContainer_)
     {
-        // std::cout << "Char input: " << win->title_ << " -> codepoint: " << codepoint << std::endl;
+        KeyEvent event(codepoint);
+        dispatchKeyEvent(win->rootContainer_.get(), event);
     }
 }
 
@@ -312,7 +515,10 @@ void SWindowManager::Run()
     std::cout << "Created " << windows_.size() << " windows with simplified Cairo rendering." << std::endl;
     std::cout << "Each window can be closed independently. Program exits when all windows are closed." << std::endl;
 
-    // 主循环
+    // // 使用高精度时钟实现帧率控制
+    // const auto target_frame_duration = std::chrono::nanoseconds(16666667); // 60 FPS = 16.666667ms
+    // auto next_frame_time = std::chrono::high_resolution_clock::now();
+
     while (!windows_.empty())
     {
         // 渲染所有打开的窗口
@@ -324,10 +530,19 @@ void SWindowManager::Run()
         // 移除关闭的窗口
         RemoveClosedWindows();
 
-        // 污染事件
+        // 处理事件
         glfwPollEvents();
 
-        // sleep 1ms
+        // // 计算下一帧时间点
+        // next_frame_time += target_frame_duration;
+
+        // // 等待到下一帧时间点
+        // auto now = std::chrono::high_resolution_clock::now();
+        // if (next_frame_time > now)
+        // {
+        //     std::this_thread::sleep_until(next_frame_time);
+        // }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
