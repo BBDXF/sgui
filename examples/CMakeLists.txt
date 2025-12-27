@@ -27,6 +27,9 @@ add_subdirectory(margin_padding_test)
 # Button demo
 add_subdirectory(button_demo)
 
+# Input demo
+add_subdirectory(input_demo)
+
 # 链接GLFW、OpenGL库和sgui库
 find_package(OpenGL REQUIRED)
 target_link_libraries(glfw_hello
