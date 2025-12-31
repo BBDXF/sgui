@@ -107,9 +107,9 @@ public:
     // ====================================================================
     
     /** 设置所有状态使用相同渐变背景 */
-    void setGradientBackground(const BackgroundGradient& gradient);
+    void setGradientBackgroundAll(const BackgroundGradient& gradient);
     /** 设置所有状态使用相同图片背景 */
-    void setBackgroundImage(const std::string& imagePath);
+    void setBackgroundImageAll(const std::string& imagePath);
 
 protected:
     // ====================================================================

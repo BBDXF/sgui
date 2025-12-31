@@ -33,7 +33,7 @@ SButton::SButton(const std::string &text) : SButton()
     setText(text);
 }
 
-void SButton::setGradientBackground(const BackgroundGradient& gradient)
+void SButton::setGradientBackgroundAll(const BackgroundGradient& gradient)
 {
     m_normalBackgroundGradient = gradient;
     m_hoverBackgroundGradient = gradient;
@@ -48,7 +48,7 @@ void SButton::setGradientBackground(const BackgroundGradient& gradient)
     updateAppearance();
 }
 
-void SButton::setBackgroundImage(const std::string& imagePath)
+void SButton::setBackgroundImageAll(const std::string& imagePath)
 {
     m_normalBackgroundImage = imagePath;
     m_hoverBackgroundImage = imagePath;

@@ -14,6 +14,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# 核心配置1：设置编译类型为 Debug（自动带 -g 符号）
+set(CMAKE_BUILD_TYPE Debug)
+# 核心配置2：强制关闭优化，保证调试准确性
+set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+
 # 添加Cairo库依赖
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo>=1.14.0)

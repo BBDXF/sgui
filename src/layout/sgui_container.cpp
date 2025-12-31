@@ -19,6 +19,10 @@ SContainer::SContainer()
     setBackgroundColor(Color::White());
 }
 
+SContainer::SContainer(const std::string &name){
+    SContainer();
+    setText(name);
+}
 SContainer::~SContainer()
 {
     // 清理背景资源
@@ -481,6 +485,8 @@ void SContainer::setupBackgroundSource(cairo_t *cr, float x, float y, float widt
                 cairo_set_source(cr, pattern);
                 m_currentPattern = pattern;
                 m_currentSurface = image_surface;
+            }else{
+                std::cerr << "Failed to load background image: " << m_backgroundImage << std::endl;
             }
         }
     }

@@ -33,29 +33,14 @@ int main() {
         
         // 创建根容器
         auto rootContainer = std::make_shared<SContainer>();
-        rootContainer->setWidth(LayoutValue::Point(800));
-        rootContainer->setHeight(LayoutValue::Point(600));
         rootContainer->setBackgroundColor(Color::White());
         
         // 创建标题容器
-        auto titleContainer = std::make_shared<SContainer>();
-        titleContainer->setWidth(LayoutValue::Point(800));
+        auto titleContainer = std::make_shared<SContainer>("SGUI 按钮背景功能演示");
         titleContainer->setHeight(LayoutValue::Point(80));
         titleContainer->setBackgroundColor(Color::fromRGB(52, 152, 219)); // 蓝色背景
         titleContainer->setPadding(EdgeInsets::All(20.0f));
-        
-        // 创建标题文本（使用按钮模拟，因为它有文本样式）
-        auto titleLabel = std::make_shared<SButton>("SGUI 按钮背景功能演示");
-        titleLabel->setWidth(LayoutValue::Point(760));
-        titleLabel->setHeight(LayoutValue::Point(40));
-        titleLabel->setFontSize(18.0f);
-        titleLabel->setNormalBackgroundColor(Color::Transparent());
-        titleLabel->setHoverBackgroundColor(Color::Transparent());
-        titleLabel->setPressedBackgroundColor(Color::Transparent());
-        titleLabel->setNormalTextColor(Color::White());
-        titleLabel->setHoverTextColor(Color::White());
-        titleLabel->setPressedTextColor(Color::White());
-        titleLabel->setBorderRadius(EdgeInsets::All(8.0f));
+        titleContainer->setFontSize(21.0);
         
         // 创建主要内容容器
         auto contentContainer = std::make_shared<SContainer>();
@@ -100,7 +85,7 @@ int main() {
         auto convenienceButton = std::make_shared<SButton>("便捷渐变");
         convenienceButton->setWidth(LayoutValue::Point(240));
         convenienceButton->setHeight(LayoutValue::Point(45));
-        convenienceButton->setGradientBackground(BackgroundGradient::rainbow(90.0f));
+        convenienceButton->setNormalBackgroundGradient(BackgroundGradient::rainbow(90.0f));
         convenienceButton->setBorderRadius(EdgeInsets::All(6.0f));
         convenienceButton->setOnClick([](const MouseEvent& event) {
             std::cout << "🎨 便捷方法按钮被点击！\n";
@@ -212,7 +197,7 @@ int main() {
             };
             
             gradientIndex = (gradientIndex + 1) % 6;
-            convenienceButton->setGradientBackground(gradients[gradientIndex]);
+            convenienceButton->setNormalBackgroundGradient(gradients[gradientIndex]);
             
             const char* gradientNames[] = {"彩虹", "日落", "海洋", "森林", "火焰", "自定义"};
             std::cout << "🎲 渐变已切换为: " << gradientNames[gradientIndex] << "\n";
@@ -226,7 +211,6 @@ int main() {
         contentContainer->addChild(column2);
         contentContainer->addChild(column3);
         
-        rootContainer->addChild(titleLabel);
         rootContainer->addChild(titleContainer);
         rootContainer->addChild(contentContainer);
         

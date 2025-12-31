@@ -31,6 +31,7 @@ class SContainer : public SLayout
 {
   public:
     SContainer();
+    SContainer(const std::string &name);
     ~SContainer();
 
     // ====================================================================
