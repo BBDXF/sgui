@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 // font default setting
 #ifdef __linux__
@@ -354,6 +355,170 @@ struct BackgroundGradient
     BackgroundGradient() = default;
     BackgroundGradient(GradientType t) : type(t)
     {
+    }
+    
+    // 构造函数，接受初始化列表
+    BackgroundGradient(GradientType t, std::initializer_list<GradientStop> stopList, float angle = 0.0f)
+        : type(t), stops(stopList), angle(angle)
+    {
+    }
+    
+    // 构造函数，接受两个颜色的简单渐变
+    BackgroundGradient(GradientType t, const Color& startColor, const Color& endColor, float angle = 0.0f)
+        : type(t), angle(angle)
+    {
+        stops.emplace_back(startColor, 0.0f);
+        stops.emplace_back(endColor, 1.0f);
+    }
+    
+    // 添加单个停止点
+    BackgroundGradient& addStop(const Color& color, float position)
+    {
+        stops.emplace_back(color, position);
+        return *this;
+    }
+    
+    // 添加停止点（支持链式调用）
+    BackgroundGradient& stop(const Color& color, float position)
+    {
+        return addStop(color, position);
+    }
+    
+    // 添加多个停止点
+    BackgroundGradient& addStops(std::initializer_list<GradientStop> stopList)
+    {
+        stops.insert(stops.end(), stopList);
+        return *this;
+    }
+    
+    // 清空所有停止点
+    BackgroundGradient& clearStops()
+    {
+        stops.clear();
+        return *this;
+    }
+    
+    // 设置渐变角度（仅对线性渐变有效）
+    BackgroundGradient& withAngle(float degrees)
+    {
+        angle = degrees;
+        return *this;
+    }
+    
+    // 设置渐变类型
+    BackgroundGradient& withType(GradientType t)
+    {
+        type = t;
+        return *this;
+    }
+    
+    // 静态工厂方法：创建线性渐变
+    static BackgroundGradient linear(const Color& startColor, const Color& endColor, float angle = 0.0f)
+    {
+        return BackgroundGradient(GradientType::Linear, startColor, endColor, angle);
+    }
+    
+    // 静态工厂方法：创建径向渐变
+    static BackgroundGradient radial(const Color& startColor, const Color& endColor)
+    {
+        return BackgroundGradient(GradientType::Radial, startColor, endColor);
+    }
+    
+    // 静态工厂方法：从颜色列表创建渐变
+    static BackgroundGradient fromColors(GradientType type, std::initializer_list<Color> colors, float angle = 0.0f)
+    {
+        BackgroundGradient gradient;
+        gradient.type = type;
+        gradient.angle = angle;
+        
+        if (colors.size() == 0) return gradient;
+        
+        if (colors.size() == 1) {
+            gradient.addStop(*colors.begin(), 0.0f);
+        } else {
+            float step = 1.0f / (colors.size() - 1);
+            auto it = colors.begin();
+            for (size_t i = 0; i < colors.size(); ++i, ++it) {
+                gradient.addStop(*it, i * step);
+            }
+        }
+        return gradient;
+    }
+    
+    // 静态工厂方法：从停止点列表创建渐变
+    static BackgroundGradient fromStops(GradientType type, std::initializer_list<GradientStop> stopList, float angle = 0.0f)
+    {
+        return BackgroundGradient(type, stopList, angle);
+    }
+    
+    // 预设渐变样式
+    
+    // 彩虹渐变
+    static BackgroundGradient rainbow(float angle = 0.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::Red(), Color::Orange(), Color::Yellow(), 
+            Color::Green(), Color::Blue(), Color::Purple()
+        }, angle);
+    }
+    
+    // 蓝色天空渐变
+    static BackgroundGradient skyBlue(float angle = 90.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::fromRGB(135, 206, 235), // 天蓝色
+            Color::fromRGB(255, 255, 255)  // 白色
+        }, angle);
+    }
+    
+    // 日落渐变
+    static BackgroundGradient sunset(float angle = 45.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::fromRGB(255, 94, 77),   // 橙红色
+            Color::fromRGB(255, 206, 84),  // 金黄色
+            Color::fromRGB(237, 117, 57)   // 深橙色
+        }, angle);
+    }
+    
+    // 海洋渐变
+    static BackgroundGradient ocean(float angle = 180.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::fromRGB(43, 192, 228),  // 浅蓝色
+            Color::fromRGB(23, 165, 137),  // 青绿色
+            Color::fromRGB(0, 91, 150)     // 深蓝色
+        }, angle);
+    }
+    
+    // 森林渐变
+    static BackgroundGradient forest(float angle = 90.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::fromRGB(134, 194, 50),  // 浅绿色
+            Color::fromRGB(46, 125, 50),   // 深绿色
+            Color::fromRGB(27, 94, 32)     // 墨绿色
+        }, angle);
+    }
+    
+    // 火焰渐变
+    static BackgroundGradient fire(float angle = 0.0f)
+    {
+        return fromColors(GradientType::Linear, {
+            Color::fromRGB(255, 255, 0),   // 黄色
+            Color::fromRGB(255, 165, 0),   // 橙色
+            Color::fromRGB(255, 0, 0),     // 红色
+            Color::fromRGB(139, 0, 0)      // 深红色
+        }, angle);
+    }
+    
+    // 简单的灰度渐变
+    static BackgroundGradient grayscale(float startValue = 0.0f, float endValue = 1.0f, float angle = 0.0f)
+    {
+        return BackgroundGradient(GradientType::Linear, 
+            Color(startValue, startValue, startValue), 
+            Color(endValue, endValue, endValue), 
+            angle);
     }
 };
 

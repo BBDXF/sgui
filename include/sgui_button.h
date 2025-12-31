@@ -79,6 +79,37 @@ public:
     void setPressedTextColor(const Color& color) { m_pressedTextColor = color; updateAppearance(); }
     /** 设置禁用状态文本色 */
     void setDisabledTextColor(const Color& color) { m_disabledTextColor = color; updateAppearance(); }
+    
+    // ====================================================================
+    // 状态相关背景设置
+    // ====================================================================
+    
+    /** 设置正常状态渐变背景 */
+    void setNormalBackgroundGradient(const BackgroundGradient& gradient) { m_normalBackgroundGradient = gradient; m_normalHasBackgroundGradient = true; updateAppearance(); }
+    /** 设置悬停状态渐变背景 */
+    void setHoverBackgroundGradient(const BackgroundGradient& gradient) { m_hoverBackgroundGradient = gradient; m_hoverHasBackgroundGradient = true; updateAppearance(); }
+    /** 设置按下状态渐变背景 */
+    void setPressedBackgroundGradient(const BackgroundGradient& gradient) { m_pressedBackgroundGradient = gradient; m_pressedHasBackgroundGradient = true; updateAppearance(); }
+    /** 设置禁用状态渐变背景 */
+    void setDisabledBackgroundGradient(const BackgroundGradient& gradient) { m_disabledBackgroundGradient = gradient; m_disabledHasBackgroundGradient = true; updateAppearance(); }
+    
+    /** 设置正常状态图片背景 */
+    void setNormalBackgroundImage(const std::string& imagePath) { m_normalBackgroundImage = imagePath; m_normalHasBackgroundImage = !imagePath.empty(); updateAppearance(); }
+    /** 设置悬停状态图片背景 */
+    void setHoverBackgroundImage(const std::string& imagePath) { m_hoverBackgroundImage = imagePath; m_hoverHasBackgroundImage = !imagePath.empty(); updateAppearance(); }
+    /** 设置按下状态图片背景 */
+    void setPressedBackgroundImage(const std::string& imagePath) { m_pressedBackgroundImage = imagePath; m_pressedHasBackgroundImage = !imagePath.empty(); updateAppearance(); }
+    /** 设置禁用状态图片背景 */
+    void setDisabledBackgroundImage(const std::string& imagePath) { m_disabledBackgroundImage = imagePath; m_disabledHasBackgroundImage = !imagePath.empty(); updateAppearance(); }
+    
+    // ====================================================================
+    // 便捷方法 - 所有状态使用相同背景
+    // ====================================================================
+    
+    /** 设置所有状态使用相同渐变背景 */
+    void setGradientBackground(const BackgroundGradient& gradient);
+    /** 设置所有状态使用相同图片背景 */
+    void setBackgroundImage(const std::string& imagePath);
 
 protected:
     // ====================================================================
@@ -135,6 +166,33 @@ private:
     Color m_hoverTextColor = Color::Black();
     Color m_pressedTextColor = Color::White();
     Color m_disabledTextColor = Color(0.5, 0.5, 0.5, 1.0);
+    
+    // ====================================================================
+    // 各状态的背景配置
+    // ====================================================================
+    
+    /** 渐变背景 */
+    BackgroundGradient m_normalBackgroundGradient;
+    BackgroundGradient m_hoverBackgroundGradient;
+    BackgroundGradient m_pressedBackgroundGradient;
+    BackgroundGradient m_disabledBackgroundGradient;
+    
+    /** 图片背景 */
+    std::string m_normalBackgroundImage;
+    std::string m_hoverBackgroundImage;
+    std::string m_pressedBackgroundImage;
+    std::string m_disabledBackgroundImage;
+    
+    /** 背景类型标志 */
+    bool m_normalHasBackgroundGradient = false;
+    bool m_hoverHasBackgroundGradient = false;
+    bool m_pressedHasBackgroundGradient = false;
+    bool m_disabledHasBackgroundGradient = false;
+    
+    bool m_normalHasBackgroundImage = false;
+    bool m_hoverHasBackgroundImage = false;
+    bool m_pressedHasBackgroundImage = false;
+    bool m_disabledHasBackgroundImage = false;
 };
 
 } // namespace sgui

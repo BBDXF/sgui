@@ -359,7 +359,7 @@ void SInput::onKeyPressed(const KeyEvent& event)
 void SInput::onKeyReleased(const KeyEvent& event)
 {
     // 处理字符输入
-    if (event.codepoint > 0 && !event.isPressed())
+    if (event.codepoint > 0)
     {
         handleCharInput(event.codepoint);
     }
@@ -381,8 +381,8 @@ void SInput::render(cairo_t* cr)
     updateCursorBlink();
     
     // 获取绘制区域
-    float x = getLayoutBorderLeft();
-    float y = getLayoutBorderTop();
+    float x = getLeft();
+    float y = getTop();
     float width = getLayoutWidth() - getLayoutBorderLeft() - getLayoutBorderRight();
     float height = getLayoutHeight() - getLayoutBorderTop() - getLayoutBorderBottom();
     

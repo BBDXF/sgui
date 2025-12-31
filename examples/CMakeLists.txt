@@ -25,7 +25,7 @@ add_subdirectory(cairo_demo)
 add_subdirectory(margin_padding_test)
 
 # Button demo
-add_subdirectory(button_demo)
+add_subdirectory(buttons_demo)
 
 # Input demo
 add_subdirectory(input_demo)

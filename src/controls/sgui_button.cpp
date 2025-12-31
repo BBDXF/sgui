@@ -33,6 +33,37 @@ SButton::SButton(const std::string &text) : SButton()
     setText(text);
 }
 
+void SButton::setGradientBackground(const BackgroundGradient& gradient)
+{
+    m_normalBackgroundGradient = gradient;
+    m_hoverBackgroundGradient = gradient;
+    m_pressedBackgroundGradient = gradient;
+    m_disabledBackgroundGradient = gradient;
+    
+    m_normalHasBackgroundGradient = true;
+    m_hoverHasBackgroundGradient = true;
+    m_pressedHasBackgroundGradient = true;
+    m_disabledHasBackgroundGradient = true;
+    
+    updateAppearance();
+}
+
+void SButton::setBackgroundImage(const std::string& imagePath)
+{
+    m_normalBackgroundImage = imagePath;
+    m_hoverBackgroundImage = imagePath;
+    m_pressedBackgroundImage = imagePath;
+    m_disabledBackgroundImage = imagePath;
+    
+    bool hasImage = !imagePath.empty();
+    m_normalHasBackgroundImage = hasImage;
+    m_hoverHasBackgroundImage = hasImage;
+    m_pressedHasBackgroundImage = hasImage;
+    m_disabledHasBackgroundImage = hasImage;
+    
+    updateAppearance();
+}
+
 void SButton::setButtonText(const std::string &text)
 {
     setText(text);
@@ -45,7 +76,7 @@ void SButton::setOnClick(MouseEventCallback callback)
 
 void SButton::setDisabled(bool disabled)
 {
-    setState(ControlState::Disabled);
+    setState(disabled? ControlState::Disabled : ControlState::Normal);
 }
 
 void SButton::setState(ControlState newState)
@@ -64,32 +95,67 @@ void SButton::updateAppearance()
     switch (m_state)
     {
     case ControlState::Normal:
-        setBackgroundColor(m_normalBackgroundColor);
+        // 设置背景 - 优先级：渐变 > 图片 > 纯色
+        if (m_normalHasBackgroundGradient) {
+            setBackgroundGradient(m_normalBackgroundGradient);
+        } else if (m_normalHasBackgroundImage) {
+            setBackgroundImage(m_normalBackgroundImage);
+        } else {
+            setBackgroundColor(m_normalBackgroundColor);
+        }
         setBorderColor(m_normalBorderColor);
         setColor(m_normalTextColor);
         break;
 
     case ControlState::Hover:
-        setBackgroundColor(m_hoverBackgroundColor);
+        // 设置背景 - 优先级：渐变 > 图片 > 纯色
+        if (m_hoverHasBackgroundGradient) {
+            setBackgroundGradient(m_hoverBackgroundGradient);
+        } else if (m_hoverHasBackgroundImage) {
+            setBackgroundImage(m_hoverBackgroundImage);
+        } else {
+            setBackgroundColor(m_hoverBackgroundColor);
+        }
         setBorderColor(m_hoverBorderColor);
         setColor(m_hoverTextColor);
         break;
 
     case ControlState::Pressed:
-        setBackgroundColor(m_pressedBackgroundColor);
+        // 设置背景 - 优先级：渐变 > 图片 > 纯色
+        if (m_pressedHasBackgroundGradient) {
+            setBackgroundGradient(m_pressedBackgroundGradient);
+        } else if (m_pressedHasBackgroundImage) {
+            setBackgroundImage(m_pressedBackgroundImage);
+        } else {
+            setBackgroundColor(m_pressedBackgroundColor);
+        }
         setBorderColor(m_pressedBorderColor);
         setColor(m_pressedTextColor);
         break;
 
     case ControlState::Disabled:
-        setBackgroundColor(m_disabledBackgroundColor);
+        // 设置背景 - 优先级：渐变 > 图片 > 纯色
+        if (m_disabledHasBackgroundGradient) {
+            setBackgroundGradient(m_disabledBackgroundGradient);
+        } else if (m_disabledHasBackgroundImage) {
+            setBackgroundImage(m_disabledBackgroundImage);
+        } else {
+            setBackgroundColor(m_disabledBackgroundColor);
+        }
         setBorderColor(m_disabledBorderColor);
         setColor(m_disabledTextColor);
         break;
 
     case ControlState::Focused:
         // 暂时不特别处理焦点状态，使用正常状态的样式
-        setBackgroundColor(m_normalBackgroundColor);
+        // 设置背景 - 优先级：渐变 > 图片 > 纯色
+        if (m_normalHasBackgroundGradient) {
+            setBackgroundGradient(m_normalBackgroundGradient);
+        } else if (m_normalHasBackgroundImage) {
+            setBackgroundImage(m_normalBackgroundImage);
+        } else {
+            setBackgroundColor(m_normalBackgroundColor);
+        }
         setBorderColor(m_normalBorderColor);
         setColor(m_normalTextColor);
         break;

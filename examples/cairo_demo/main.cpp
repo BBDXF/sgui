@@ -56,7 +56,8 @@ int main() {
         contentContainer->setDisplay(Display::Flex);
         contentContainer->setGap(Gutter::All, LayoutValue::Point(10));
         contentContainer->setBorder(EdgeInsets::All(1.0));
-        
+
+        contentContainer->setBackgroundImage("./t1.png");
         // 创建三个彩色方块
         auto redBox = std::make_shared<SContainer>();
         redBox->setText("红色 - body");
@@ -73,7 +74,7 @@ int main() {
         greenBox->setHeight(LayoutValue::Point(200));
         
         auto blueBox = std::make_shared<SContainer>();
-        blueBox->setText("蓝色 - body");
+        blueBox->setText("紫色 - body");
         blueBox->setBackgroundColor(Color::fromRGB(155, 89, 182)); // 紫色
         blueBox->setWidth(LayoutValue::Point(240));
         blueBox->setHeight(LayoutValue::Point(200));
@@ -87,7 +88,8 @@ int main() {
         bottomContainer->setBackgroundColor(Color(0xFF, 0x10, 0x1F));
         bottomContainer->setText("bottom");
         bottomContainer->setDisplay(Display::Flex);
-        
+
+        bottomContainer->setBackgroundGradient(BackgroundGradient::ocean());
         // 创建两个圆角矩形演示
         auto roundedBox1 = std::make_shared<SContainer>();
         roundedBox1->setText("黄色 - bot");
